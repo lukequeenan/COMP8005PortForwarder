@@ -6,8 +6,8 @@ SRC=/src
 
 PROJECT_NAME=portForwarder.out
 
-project: sharedLibrary.o
-	$(CC) $(CFLAGS) sharedLibrary.o main.c -o $(PROJECT_NAME)
+project: mapHash.o sharedLibrary.o
+	$(CC) $(CFLAGS) mapHash.o sharedLibrary.o main.c -o $(PROJECT_NAME)
 
 clean:
 	rm -f *.o *.bak *.out ex
@@ -15,4 +15,5 @@ clean:
 sharedLibrary: sharedLibrary.c sharedLibrary.h
 	$(CC) $(CFLAGS) -O -c sharedLibrary.c
 
-
+mapHash: uthash.h mapHash.c mapHash.h
+	$(CC) $(CFLAGS) -O -c mapHash.c

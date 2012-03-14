@@ -4,6 +4,7 @@
 #include <limits.h>
 
 #include "sharedLibrary.h"
+#include "mapHash.h"
 
 #define SETTINGS_BUFFER 1024
 
@@ -80,7 +81,10 @@ static int parseConfiguration(const char filePath[])
         if (sscanf(line, "%d,%s,%d", &externPort, ip, &internPort) == 3)
         {
             validSettings++;
-            rule.
+            rule->clientPort = internPort;
+            memcpy(rule->clientIp, ip, 16);
+            rule->serverPort = externPort;
+            mapAdd(rule);
         }
     }
     
