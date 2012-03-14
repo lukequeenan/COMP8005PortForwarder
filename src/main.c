@@ -61,6 +61,7 @@ static int parseConfiguration(const char filePath[])
     int validSettings = 0;
     char line[SETTINGS_BUFFER];
     FILE *file = NULL;
+    PMAP rule = NULL;
 
     int externPort = 0;
     int internPort = 0;
@@ -79,7 +80,7 @@ static int parseConfiguration(const char filePath[])
         if (sscanf(line, "%d,%s,%d", &externPort, ip, &internPort) == 3)
         {
             validSettings++;
-            
+            rule.
         }
     }
     
