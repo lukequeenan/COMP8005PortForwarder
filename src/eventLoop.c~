@@ -22,7 +22,6 @@ void newConnectionTasks(int socketFD) {
 
 void closedConnectionTasks(int socketFD) {
     //find its socket pair from hashmap and close it
-    //need to determine
 }
 
 void startServer(int port,int (*fnPtr)(int, char*, int)) {
