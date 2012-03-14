@@ -1,5 +1,5 @@
 #include "mapHash.h"
-#include <pthread.h>
+#include <stdio.h>
 
 PMAP hashMap = NULL;
 
@@ -31,7 +31,7 @@ void mapDeleteAll() {
 void mapPrint() {
     PMAP s;
     int i = 0;
-    for(s=mapHash; s != NULL; s=s->hh.next) {
+    for(s=hashMap; s != NULL; s=s->hh.next) {
         //print ipetId, addr in and addr out maybe more.
         //printf("user id %d: name %s\n", s->id, s->name);
         printf("map num: %d\n",i++);
@@ -39,11 +39,11 @@ void mapPrint() {
 }
 
 int mapSort(PMAP a, PMAP b) {
-    return (a->ip - b->ip);
+    return (a->clientPort - b->clientPort);
 }
 
 void mapSortById() {
-    HASH_SORT(mapHash, mapSort);
+    HASH_SORT(hashMap, mapSort);
 }
 
 
