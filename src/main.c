@@ -7,6 +7,9 @@
 
 #define SETTINGS_BUFFER 1024
 
+/* Local Prototypes */
+static int parseConfiguration(const char filePath[]);
+
 /*
  -- FUNCTION: main
  --
@@ -31,7 +34,6 @@ int main(int argc, char **argv)
     int option = 0;
     int numberOfRules = 0;
     char configFile[PATH_MAX] = {"../settings"};
-    item* rules = NULL;
     
     /* Get command line parameters */
     while ((option = getopt(argc, argv, "f:")) != -1)
@@ -49,24 +51,23 @@ int main(int argc, char **argv)
     }
     
     /* Parse the settings file and get all the rules */
-    numberOfRules = parseConfiguration(configFile, rules);
+    numberOfRules = parseConfiguration(configFile);
     
     return 0;
 }
 
-int parseConfiguration(const char *filePath[], rule* rules)
+static int parseConfiguration(const char filePath[])
 {
     int validSettings = 0;
     char line[SETTINGS_BUFFER];
     FILE *file = NULL;
-    item* current = rules;
 
     int externPort = 0;
     int internPort = 0;
     char ip[16];
     
     /* Open the configuration file */
-    if ((file = fopen("../settings", "r")) == NULL)
+    if ((file = fopen(filePath, "r")) == NULL)
     {
         systemFatal("Error opening configuration file");
     }
@@ -78,13 +79,6 @@ int parseConfiguration(const char *filePath[], rule* rules)
         if (sscanf(line, "%d,%s,%d", &externPort, ip, &internPort) == 3)
         {
             validSettings++;
-            
-            /* Allocate memory for the rule and set values */
-            current = malloc(sizeof(item));
-            current->externPort = externPort;
-            current->ip = ip;
-            current->internPort = internPort
-            current->next = rules;
             
         }
     }
