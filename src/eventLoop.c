@@ -1,4 +1,3 @@
-
 #include "eventLoop.h"
 #define MAXBUFFSIZE 2048
 
@@ -114,7 +113,7 @@ int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int)) {
 
     while (1) {
         ssize_t count;
-        count = read (socketFD, &buf[length], MAXBUFFSIZE - length);
+        count = recv(socketFD, &buf[length], MAXBUFFSIZE - length, 0);
         length += count;
         if (length == MAXBUFFSIZE) {
             printf("hope this never is reached");
