@@ -1,30 +1,76 @@
-/*
-void eventLoop()
-{
-    register int epoll = 0;
-    register int ready = 0;
-    register int index = 0;
-    
-    struct epoll_event event;
-    struct epoll_event events[MAX_EVENTS];
-    
-    
-}
-*/
-#include "epoll.h"
+
+#include "eventLoop.h"
 #define MAXBUFFSIZE 2048
 
+
+/*
+ -- FUNCTION: void newConnectionTasks(int socketFD)
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: TBD
+ --
+ -- RETURNS: TBD
+ --
+ -- NOTES:
+ -- This function will perform any maintenance task upon recieving a new connection
+ -- For for example creating socketpair and adding them to hashmap
+ */
 void newConnectionTasks(int socketFD) {
     //may want to establish connection to server here if using the socket pair example
    //then add that new socket to the epoll event monitor
    //probably will use this function to setup the hashmap entry.
 }
 
+/*
+ -- FUNCTION: closedConnectionTasks
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: TBD
+ --
+ -- RETURNS: TBD
+ --
+ -- NOTES:
+ -- Handles socket closing operations ie delete from hashmap and close socket pair
+ */
+
 void closedConnectionTasks(int socketFD) {
     //find its socket pair from hashmap and close it
     //need to determine
 }
 
+/*
+ -- FUNCTION: startServer
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void startServer(int port,int (*fnPtr)(int, char*, int))
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- Entry point for starting the epoll server.  give it a port and it will listen for connections
+ -- The function pointer is the function called upon reading data.
+ */
 void startServer(int port,int (*fnPtr)(int, char*, int)) {
     struct epoll_event *events;
     int socketFD;
@@ -37,8 +83,25 @@ void startServer(int port,int (*fnPtr)(int, char*, int)) {
     close(socketFD);
 }
 
-
-
+/*
+ -- FUNCTION: readDataFromSocket
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int))
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- reads all data that is currently on the socket
+ -- maybe be handicapped and need to be readdressed this function may read beyond one packet.
+ */
 int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int)) {
     ssize_t length = 0;
     char *buf;
@@ -76,6 +139,25 @@ int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int)) {
     return 0;
 }
 
+/*
+ -- FUNCTION: readDataFromSocket
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int))
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- reads all data that is currently on the socket
+ -- maybe be handicapped and need to be readdressed this function may read beyond one packet.
+ */
 void makeNonBlockingSocket (int socketDescriptor) {
     int flags, result;
     flags = fcntl (socketDescriptor, F_GETFL, 0);
@@ -93,6 +175,24 @@ void makeNonBlockingSocket (int socketDescriptor) {
     return;
 }
 
+/*
+ -- FUNCTION: getAddressResult
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int getAddressResult(int port, struct addrinfo **result)
+ --
+ -- RETURNS: 0 on success -1 on failure
+ --
+ -- NOTES:
+ -- used for testing purposes prints out the socket data to console when called
+ */
 int getAddressResult(int port, struct addrinfo **result) {
     struct addrinfo hints;
     int returnValue;
@@ -110,6 +210,24 @@ int getAddressResult(int port, struct addrinfo **result) {
     return 0;
 }
 
+/*
+ -- FUNCTION: createAndBind
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int createAndBind(int port)
+ --
+ -- RETURNS: a socket descriptor on success -1 on failure
+ --
+ -- NOTES:
+ -- Accepts all the incoming new sockets and sets them as nonblocking.
+ */
 int createAndBind(int port) {
 
     struct addrinfo *result, *rp;
@@ -137,6 +255,25 @@ int createAndBind(int port) {
     return socketFD;
 }
 
+/*
+ -- FUNCTION: processIncomingNewSocket
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void processIncomingNewSocket(int socketFD, int epollFD)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- upon a new connection manipulates the socket so it works with epoll
+ -- makes it non blocking and adds registers it with epoll for future monitoring
+ */
 void processIncomingNewSocket(int socketFD, int epollFD) {
     while (1) {
         struct epoll_event event;
@@ -178,6 +315,24 @@ void processIncomingNewSocket(int socketFD, int epollFD) {
     }
 }
 
+/*
+ -- FUNCTION: eventLoop
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void eventLoop(int socketFD, int epollFD, struct epoll_event *events, int (*fnPtr)(int, char*, int))
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- the primary loop for the function. loops on the epoll_wait system call
+ */
 void eventLoop(int socketFD, int epollFD, struct epoll_event *events, int (*fnPtr)(int, char*, int)) {
     while (TRUE) {
         int n, i;
@@ -208,6 +363,24 @@ void eventLoop(int socketFD, int epollFD, struct epoll_event *events, int (*fnPt
     free (events);
 }
 
+/*
+ -- FUNCTION: validateSocket
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int validateSocket(int port)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for createAndBind ie error checking
+ */
 int validateSocket(int port) {
     int socketFD = createAndBind (port);
     if (socketFD == -1) {
@@ -216,6 +389,24 @@ int validateSocket(int port) {
     return socketFD;
 }
 
+/*
+ -- FUNCTION: bindandListenSocket
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void bindandListenSocket(int socketFD)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for the listen system call
+ */
 void bindandListenSocket(int socketFD) {
     int result;
     makeNonBlockingSocket (socketFD);
@@ -227,6 +418,24 @@ void bindandListenSocket(int socketFD) {
     }
 }
 
+/*
+ -- FUNCTION: createEPoll
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int createEPoll()
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for the epoll_create1 call
+ */
 int createEPoll() {
     int epollFD = epoll_create1 (0);
     if (epollFD == -1) {
@@ -236,6 +445,24 @@ int createEPoll() {
     return epollFD;
 }
 
+/*
+ -- FUNCTION: setEPollSocket
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void setEPollSocket(int epollFD, int socketFD, struct epoll_event **pevents)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for the epoll_ctl system call
+ */
 void setEPollSocket(int epollFD, int socketFD, struct epoll_event **pevents) {
 
     struct epoll_event event;
