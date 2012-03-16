@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-W -Wall -g
+TFLAGS=-lpthread -pthread
 BUILDDIR=/bin
 VPATH=src
 SRC=/src
@@ -12,8 +13,14 @@ project: mapHash.o sharedLibrary.o
 clean:
 	rm -f *.o *.bak *.out ex
 
-sharedLibrary: sharedLibrary.c sharedLibrary.h
-	$(CC) $(CFLAGS) -O -c sharedLibrary.c
-
 mapHash: uthash.h mapHash.c mapHash.h
 	$(CC) $(CFLAGS) -O -c mapHash.c
+
+eventLoop: sharedLibrary.o eventLoop.c eventLoop.h
+	$(CC) $(CFLAGS) $(TFLAG) -O -c eventLoop.c
+
+forward: sharedLibrary.o forward.c forward.h
+	$(CC) $(CFLAGS) -O -c forward.c
+
+sharedLibrary: sharedLibrary.c sharedLibrary.h
+	$(CC) $(CFLAGS) -O -c sharedLibrary.c

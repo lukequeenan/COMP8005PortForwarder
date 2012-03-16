@@ -2,6 +2,7 @@
 #define EVENT_LOOP_H
 
 #include <pcap.h>
+#include <pthread.h>
 
 #include "sharedLibrary.h"
 #include "forward.h"

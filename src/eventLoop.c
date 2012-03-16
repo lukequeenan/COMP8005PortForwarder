@@ -6,7 +6,7 @@ void *sniff(void *data)
     char device[] = "em0";
     char errorBuffer[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
-    chat filter_exp[] = "port 22";
+    char filter_exp[] = "port 22";
     bpf_u_int32 mask;
     bpf_u_int32 net;
     
@@ -40,5 +40,10 @@ void *sniff(void *data)
     {
         systemFatal("Error in pcap_loop");
     }
+    
+    /* Clean up and exit */
+    pcap_freecode(&fp);
+    pcap_close(handle);
+    pthread_exit(NULL);
 }
 
