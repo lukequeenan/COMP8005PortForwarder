@@ -6,7 +6,7 @@ void *sniff(void *data)
     char device[] = "em0";
     char errorBuffer[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
-    char filter_exp[] = "port 22";
+    char filter_exp[] = "port 22"; /* This filter needs to check for dest IP */
     bpf_u_int32 mask;
     bpf_u_int32 net;
     
