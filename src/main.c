@@ -82,7 +82,7 @@ static int parseConfiguration(const char filePath[])
         {
             validSettings++;
             rule->clientPort = internPort;
-            memcpy(rule->clientIp, ip, 16);
+            rule->clientIp = inet_addr(ip);
             rule->serverPort = externPort;
             mapAdd(rule);
         }
