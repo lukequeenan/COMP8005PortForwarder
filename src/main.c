@@ -44,7 +44,7 @@ int main(int argc, char **argv)
             case 'f':
                 snprintf(configFile, sizeof(configFile), "%s", optarg);
                 break;
-                
+
             default:
                 fprintf(stderr, "Usage: %s -f [config file location]\n", argv[0]);
                 return 0;
