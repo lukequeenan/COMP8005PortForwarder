@@ -7,6 +7,7 @@
 #include "mapHash.h"
 
 #define SETTINGS_BUFFER 1024
+unsigned int serverIp;
 
 /* Local Prototypes */
 static int parseConfiguration(const char filePath[]);
@@ -57,12 +58,15 @@ int main(int argc, char **argv)
     return 0;
 }
 
+
+
+
 static int parseConfiguration(const char filePath[])
 {
     int validSettings = 0;
     char line[SETTINGS_BUFFER];
     FILE *file = NULL;
-    PMAP rule = NULL;
+    //PMAP rule = NULL;
 
     int externPort = 0;
     int internPort = 0;
