@@ -14,6 +14,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     int ipHeaderSize = 0;
     int tcpHeaderSize = 0;
     int payloadSize = 0;
+    int sentData = 0;
     
     unsigned long ipAddress = 0;
     u_short port = 0;
@@ -59,6 +60,10 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         
         
         /* Send the packet on its way to the internal machine */
+        //sentData = sendto(
+        
+        /* Clean up */
+        free(myPacket);
         
         return;        
     }
