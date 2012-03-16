@@ -3,6 +3,25 @@
 
 PSERVER hashServer = NULL;
 
+/*
+ -- FUNCTION: serverAdd
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clientPort)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for uthash add macro
+ -- IP and Port should be normalized to network byte order
+ */
 void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clientPort)
 {
     PSERVER srv = malloc(sizeof(SERVER));
@@ -12,6 +31,25 @@ void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clie
     HASH_ADD_INT(hashServer, serverID, srv);
 }
 
+/*
+ -- FUNCTION: serverFind
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: PSERVER serverFind(int serverPort)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for uthash find macro
+ -- IP and Port should be normalized to network byte order
+ */
 PSERVER serverFind(int serverPort)
 {
     PSERVER server;
@@ -19,6 +57,24 @@ PSERVER serverFind(int serverPort)
     return server;
 }
 
+/*
+ -- FUNCTION: serverDelete
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void serverDelete(int serverPort)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for uthash delete macro
+ */
 void serverDelete(int serverPort)
 {
     PSERVER srv = serverFind(serverPort);
@@ -28,6 +84,24 @@ void serverDelete(int serverPort)
     }
 }
 
+/*
+ -- FUNCTION: serverDeleteAll
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void serverDeleteAll()
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- wrapper for uthash delete macro and iterates through whole hashmap
+ */
 void serverDeleteAll()
 {
     PSERVER current_server, tmp;
@@ -38,6 +112,24 @@ void serverDeleteAll()
     }
 }
 
+/*
+ -- FUNCTION: serverPrint
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void serverPrint()
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- testing function
+ */
 void serverPrint()
 {
     PSERVER s;
@@ -49,11 +141,47 @@ void serverPrint()
     }
 }
 
+/*
+ -- FUNCTION: serverSort
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int serverSort(PSERVER a, PSERVER b)
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- sorting
+ */
 int serverSort(PSERVER a, PSERVER b)
 {
     return (a->serverID - b->serverID);
 }
 
+/*
+ -- FUNCTION: serverSortById
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: serverSortById()
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- sorting
+ */
 void serverSortById()
 {
     HASH_SORT(hashServer, serverSort);
