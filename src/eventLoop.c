@@ -9,6 +9,9 @@ void *sniff(void *data)
     char filter_exp[] = "port 22"; /* This filter needs to check for dest IP */
     bpf_u_int32 mask;
     bpf_u_int32 net;
+    int rawSocket = 0;
+    
+    rawSocket = createRawSocketTcp();
     
     /* Get the properties of the device that we are listening on */
     if (pcap_lookupnet(device, &net, &mask, errorBuffer) == -1)
@@ -47,3 +50,24 @@ void *sniff(void *data)
     pthread_exit(NULL);
 }
 
+static int createRawSocketTcp()
+{
+    int rawSocket = 0;
+    int one = 1;
+    const int *val = &one;
+    
+    /* Create the raw socket for sending data through */
+    rawSocket = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
+    setuid(getuid());
+    if (rawSocket == -1)
+    {
+        systemFatal("Unable to create raw socket");
+    }
+    
+    if (setsockopt(rawSocket, IPPROTO_TCP, IP_HDRINCL, val, sizeof(one)) == -1)
+    {
+        systemFatal("Unable to set raw socket options");
+    }
+    
+    return rawSocket;
+}
