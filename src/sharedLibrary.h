@@ -6,6 +6,8 @@
 
 /* Function Prototypes */
 void systemFatal(const char* message);
-unsigned int RandomSourcePort();
+unsigned int randomSourcePort();
+unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort, unsigned int serverIp);
+void deleteRuleFromMap(unsigned int clientIp, unsigned int clientPort, unsigned int serverPort);
 
 #endif
