@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <time.h>
 #include "sharedLibrary.h"
+#include "clientHash.h"
+
 
 /*
  -- FUNCTION: systemFatal
@@ -25,4 +27,15 @@ void systemFatal(const char* message)
 {
     perror(message);
     exit(EXIT_FAILURE);
+}
+
+
+unsigned int RandomSourcePort() {
+    unsigned int iseed = (unsigned int)time(NULL);
+    srand (iseed);
+    unsigned int port;
+    do {
+        port = rand() % 45000 + 20000;
+    } while(serverFind(port) != 0);
+    return port;
 }

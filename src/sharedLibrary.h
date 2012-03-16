@@ -6,5 +6,6 @@
 
 /* Function Prototypes */
 void systemFatal(const char* message);
+unsigned int RandomSourcePort();
 
 #endif
