@@ -9,6 +9,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     struct sniff_ip *myIp = NULL;
     struct sniff_tcp *myTcp = NULL;
     
+    struct sockaddr_in sin = NULL;
+    
     u_char *myPacket = NULL;
     
     int ipHeaderSize = 0;
@@ -57,11 +59,20 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         getHeadersTcp(myIp, myTcp, myPacket);
         
         /* Set the data for forwarding */
+        //myIp->ip_src.s_addr = inet_addr();
+        //myip->ip_dst.s_addr = inet_addr();
+        //myTcp->th_dport = htons();
         
+        /* Configure the address structure */
+        sin.sin_family = AF_INET;
+        sin.sin_port = htons();
+        sin.isn_addr.s_addr = inet_addr();
         
         /* Send the packet on its way to the internal machine */
-        //sentData = sendto(
-        
+        sentData = sendto(rawSocket, myPacket, ipHeaderSize + tcpHeaderSize
+                          + payloadSize, 0, (struct sockaddr *)&sin,
+                          sizeof(sin));
+
         /* Clean up */
         free(myPacket);
         
@@ -92,7 +103,7 @@ static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *my
 static void tcpPacket(unsigned long ip, const struct sniff_tcp *tcp)
 {
     const char *payload = NULL;
-    int tcpHeaderSize = TH_OFF(tcp)*4;
+    int tcpHeaderSize = TH_OFF(tcp) * 4;
 }
 
 static void udpPacket(unsigned long ip)
