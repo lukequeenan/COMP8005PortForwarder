@@ -9,8 +9,8 @@
 #include "forward.h"
 
 #define SNAP_LEN 1518
+#define FILTER_BUFFER 1024
 
-void *monitorSocket(void *data);
-static int createRawSocketTcp();
+void *pcapLoop(void *data);
 
 #endif

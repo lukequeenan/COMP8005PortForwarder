@@ -66,11 +66,6 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
     int gotCardNames = 0;
     char line[SETTINGS_BUFFER];
     FILE *file = NULL;
-    
-    rule *eHead = NULL;
-    rule *iHead = NULL;
-    rule *eCurrent = NULL;
-    rule *iCurrent = NULL;
 
     int externPort = 0;
     int internPort = 0;
@@ -91,6 +86,7 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         {
             continue;
         }
+        /* Card names should be the first line of data, so get them */
         if (gotCardNames == 0)
         {
             if (sscanf(line, "%s,%s", externInfo->nic, internInfo->nic) == 2)
@@ -102,8 +98,9 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         if (sscanf(line, "%d,%s,%d,%s", &externPort, externIp, &internPort, internIp) == 4)
         {
             validSettings++;
-            /* Finish putting stuff into the linked list here */
-            memcpy(externInfo->externIp, externIp, sizeof(char) * 16);
+            memcpy(externInfo->ip, externIp, sizeof(char) * 16);
+            memcpy(externInfo->ip, internIp, sizeof(char) * 16);
+            /* TODO: need to make the filter here! */
         }
     }
     

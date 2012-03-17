@@ -18,6 +18,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     
     u_char *myPacket = NULL;
     
+    info myInfo = (info*)args;
+    
     int ipHeaderSize = 0;
     int tcpHeaderSize = 0;
     int payloadSize = 0;
@@ -70,6 +72,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         memcpy(myPacket, packet + SIZE_ETHERNET, ipHeaderSize + tcpHeaderSize + payloadSize);
         getHeadersTcp(myIp, myTcp, myPacket);
         
+        /* Find the rule to follow */
+        
         /* Set the data for forwarding */
         //myIp->ip_src.s_addr = inet_addr();
         //myip->ip_dst.s_addr = inet_addr();
@@ -88,7 +92,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         /* Clean up */
         free(myPacket);
         
-        return;        
+        return;
     }
     else if (ip->ip_p == IPPROTO_UDP)
     {
