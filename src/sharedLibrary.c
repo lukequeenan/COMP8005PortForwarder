@@ -1,11 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
 #include "sharedLibrary.h"
 #include "clientHash.h"
 #include "serverHash.h"
 #include "ruleHash.h"
-
 
 unsigned int randomSourcePort();
 
