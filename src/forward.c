@@ -1,5 +1,10 @@
 #include "forward.h"
 
+/* Local prototypes */
+static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *myPacket);
+//static void tcpPacket();
+//static void udpPacket();
+
 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
     const struct sniff_ethernet *ethernet = NULL;
@@ -53,7 +58,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             /* Grab the source port */
             port = tcp->th_sport;
             
-            /* Call the map here and add the data */
+            /* Add the data to the map */
+            addRuleToMaps(ipAddress, port);
         }
         
         /* Get the size of the payload */
@@ -105,15 +111,14 @@ static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *my
     tcp = (struct sniff_tcp*)(myPacket + ipHeaderSize);
     tcpHeaderSize = TH_OFF(tcp) * 4;
 }
-
-static void tcpPacket(unsigned long ip, const struct sniff_tcp *tcp)
+/*
+static void tcpPacket()
 {
-    const char *payload = NULL;
-    int tcpHeaderSize = TH_OFF(tcp) * 4;
-}
-
-static void udpPacket(unsigned long ip)
-{
-    ip++;
     return;
 }
+
+static void udpPacket()
+{
+    return;
+}
+*/

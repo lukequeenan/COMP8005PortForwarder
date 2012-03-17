@@ -69,8 +69,5 @@ struct sniff_tcp {
 };
 
 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
-static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *myPacket);
-static void tcpPacket(unsigned long ip, const struct sniff_tcp *tcp);
-static void udpPacket(unsigned long ip);
 
 #endif
