@@ -22,10 +22,13 @@ typedef struct
 
 /* Function Prototypes */
 void systemFatal(const char* message);
-unsigned int randomSourcePort();
 unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort);
 void deleteRuleFromMap(unsigned int clientIp, unsigned int clientPort, unsigned int serverPort);
 int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPort);
 int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clientPort);
+int rlFind(unsigned int clientDestPort, unsigned int *serverDestPort, unsigned int *serverDestIp);
+int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int serverDestIp);
+char* rlToStr();
+
 
 #endif

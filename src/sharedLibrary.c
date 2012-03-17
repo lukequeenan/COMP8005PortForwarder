@@ -7,6 +7,8 @@
 #include "ruleHash.h"
 
 
+unsigned int randomSourcePort();
+
 /*
  -- FUNCTION: systemFatal
  --
@@ -31,6 +33,47 @@ void systemFatal(const char* message)
     exit(EXIT_FAILURE);
 }
 
+/*
+ -- FUNCTION: rlToStr
+ --
+ -- DATE: March 17, 2011
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: char* rlToStr()
+ --
+ -- RETURNS: 0 on failure or a string useable by pcap to filter by ports eg "port 22 or port 23"
+ --
+ -- NOTES:
+ -- wrapper for to string method from ruleHash
+ */
+char* rlToStr() {
+    return rulePrint();
+}
+
+/*
+ -- FUNCTION: rlAdd
+ --
+ -- DATE: March 17, 2011
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int serverDestIp)
+ --
+ -- RETURNS: 0 on failure 1 on success
+ --
+ -- NOTES:
+ -- adds an entry to ruleHash useable for parsing client packets and giving the appropriate
+ -- service port and service ip
+ */
 int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int serverDestIp) {
     if (ruleFind(clientDestPort) != 0) {
         return 0;
@@ -39,6 +82,24 @@ int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int
     return 1;
 }
 
+/*
+ -- FUNCTION: rlAdd
+ --
+ -- DATE: March 17, 2011
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int rlFind(unsigned int clientDestPort, unsigned int *serverDestPort, unsigned int *serverDestIp)
+ --
+ -- RETURNS: 0 if no rule match 1 on match
+ --
+ -- NOTES:
+ -- retrieves the server ip and port from the clientDestPort parsed from incoming packet
+ */
 int rlFind(unsigned int clientDestPort, unsigned int *serverDestPort, unsigned int *serverDestIp) {
     PRULE pRule = ruleFind(clientDestPort);
     if (pRule == 0) {

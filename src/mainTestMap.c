@@ -58,12 +58,17 @@ int main() {
 
     unsigned int serverDestIp = z;
     unsigned int serverDestPort = htons(9999);
-    unsigned int clientDestPort = htons(2222);
+    unsigned int clientDestPort = htons(22222);
     rlAdd(clientDestPort, serverDestPort, serverDestIp);
     unsigned int ddd, eee;
     rlFind(clientDestPort, &eee, &ddd);
     printf("rlFind should return value %d: %d\n",serverDestPort, eee);
 
+    printf("%s\n", rlToStr());
+    rlAdd(htons(22223), serverDestPort, serverDestIp);
+    rlAdd(htons(22224), serverDestPort, serverDestIp);
+    rlAdd(htons(22225), serverDestPort, serverDestIp);
+    printf("%s\n", rlToStr());
 
 
 
