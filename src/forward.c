@@ -33,9 +33,6 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
 		return;
 	}
     
-    /* Get the source IP */
-    ipAddress = ip->ip_src.s_addr;
-    
     /* Determine the protocol and handle it */
     if (ip->ip_p == IPPROTO_TCP)
     {
@@ -47,8 +44,17 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             return;
         }
         
-        /* Grab the source port */
-        port = tcp->th_sport;
+        /* Check to see if the SYN bit is set */
+        if ((tcp->th_flags & TH_SYN) == TH_SYN)
+        {
+            /* Get the source IP */
+            ipAddress = ip->ip_src.s_addr;
+            
+            /* Grab the source port */
+            port = tcp->th_sport;
+            
+            /* Call the map here and add the data */
+        }
         
         /* Get the size of the payload */
         payloadSize = ntohs(ip->ip_len) - (ipHeaderSize + tcpHeaderSize);
