@@ -31,6 +31,25 @@ void systemFatal(const char* message)
     exit(EXIT_FAILURE);
 }
 
+int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clientPort) {
+    PSERVER srv = serverFind(serverPort);
+    if (srv == 0) {
+        return 0;
+    }
+    *clientIp = srv->clientIp;
+    *clientPort = srv->clientPort;
+    return 1;
+}
+
+int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPort) {
+    PCLIENT cli = clientFind(clientIp, clientPort);
+    if (cli == 0) {
+        return 0;
+    }
+    *srvPort = cli->serverPort;
+    return 1;
+}
+
 /*
  -- FUNCTION: addRuleToMaps
  --
@@ -51,9 +70,9 @@ void systemFatal(const char* message)
  -- So, remember a straight copy from the ip and tcp headers from the new client connection
  -- and inet_addr on the configuration server ip.
  */
-unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort, unsigned int serverIp) {
+unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort) {
     unsigned int serverPort = randomSourcePort();
-    clientAdd(clientIp,clientPort, serverIp, serverPort);
+    clientAdd(clientIp,clientPort, 0, serverPort);
     serverAdd(serverPort, clientIp, clientPort);
     return serverPort;
 }
