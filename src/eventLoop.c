@@ -2,15 +2,18 @@
 
 void *sniff(void *data)
 {
+    info *myInfo = (info*)data;
     pcap_t *handle;
     char device[] = "em0";
     char errorBuffer[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
-    char filter_exp[] = "port 22"; /* This filter needs to check for dest IP */
+    char *filter = NULL;
+    //char filter_exp[] = "port 22"; /* This filter needs to check for dest IP */
     bpf_u_int32 mask;
     bpf_u_int32 net;
     int rawSocket = 0;
     
+    /* Create the raw socket for sending data through */
     rawSocket = createRawSocketTcp();
     
     /* Get the properties of the device that we are listening on */
@@ -27,7 +30,7 @@ void *sniff(void *data)
     }
     
     /* Parse the filter to the capture */
-    if (pcap_compile(handle, &fp, filter_exp, 0, PCAP_NETMASK_UNKNOWN) == -1)
+    if (pcap_compile(handle, &fp, filter, 0, PCAP_NETMASK_UNKNOWN) == -1)
     {
         systemFatal("Unable to compile filter");
     }
@@ -70,4 +73,9 @@ static int createRawSocketTcp()
     }
     
     return rawSocket;
+}
+
+static void createFilter()
+{
+    
 }

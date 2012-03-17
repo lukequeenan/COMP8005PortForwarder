@@ -3,6 +3,23 @@
 
 /* Defines */
 
+/* Typedefs */
+struct rule
+{
+    int internPort;
+    int externPort;
+    struct rule *next;
+};
+typedef struct rule rule;
+
+typedef struct
+{
+    char nic[6];
+    char externIp[16];
+    char internIp[16];
+    int rawSocket;
+    rule *head;
+} info;
 
 /* Function Prototypes */
 void systemFatal(const char* message);

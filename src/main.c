@@ -1,16 +1,16 @@
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <limits.h>
 
 #include "sharedLibrary.h"
-#include "mapHash.h"
 
 #define SETTINGS_BUFFER 1024
-unsigned int serverIp;
 
 /* Local Prototypes */
-static int parseConfiguration(const char filePath[]);
+static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo);
 
 /*
  -- FUNCTION: main
@@ -35,7 +35,9 @@ int main(int argc, char **argv)
 {
     int option = 0;
     int numberOfRules = 0;
-    char configFile[PATH_MAX] = {"../settings"};
+    char configFile[PATH_MAX] = {"../settings.conf"};
+    info externInfo;
+    info internInfo;
     
     /* Get command line parameters */
     while ((option = getopt(argc, argv, "f:")) != -1)
@@ -53,24 +55,27 @@ int main(int argc, char **argv)
     }
     
     /* Parse the settings file and get all the rules */
-    numberOfRules = parseConfiguration(configFile);
+    numberOfRules = parseConfiguration(configFile, &externInfo, &internInfo);
     
     return 0;
 }
 
-
-
-
-static int parseConfiguration(const char filePath[])
+static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo)
 {
     int validSettings = 0;
+    int gotCardNames = 0;
     char line[SETTINGS_BUFFER];
     FILE *file = NULL;
-    //PMAP rule = NULL;
+    
+    rule *eHead = NULL;
+    rule *iHead = NULL;
+    rule *eCurrent = NULL;
+    rule *iCurrent = NULL;
 
     int externPort = 0;
     int internPort = 0;
-    char ip[16];
+    char externIp[16];
+    char internIp[16];
     
     /* Open the configuration file */
     if ((file = fopen(filePath, "r")) == NULL)
@@ -78,17 +83,27 @@ static int parseConfiguration(const char filePath[])
         systemFatal("Error opening configuration file");
     }
     
-    /* While there are lines in the file... */
+    /* While there are rule lines in the file */
     while (fgets(line, sizeof(line), file))
     {
+        /* Deal with commented lines */
+        if (line[0] == '#')
+        {
+            continue;
+        }
+        if (gotCardNames == 0)
+        {
+            if (sscanf(line, "%s,%s", externInfo->nic, internInfo->nic) == 2)
+            {
+                gotCardNames = 1;
+            }
+        }
         /* Get the data and ensure that it's valid */
-        if (sscanf(line, "%d,%s,%d", &externPort, ip, &internPort) == 3)
+        if (sscanf(line, "%d,%s,%d,%s", &externPort, externIp, &internPort, internIp) == 4)
         {
             validSettings++;
-            rule->clientPort = internPort;
-            rule->clientIp = inet_addr(ip);
-            rule->serverPort = externPort;
-            mapAdd(rule);
+            /* Finish putting stuff into the linked list here */
+            memcpy(externInfo->externIp, externIp, sizeof(char) * 16);
         }
     }
     
