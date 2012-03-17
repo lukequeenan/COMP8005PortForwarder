@@ -14,7 +14,7 @@ void ruleAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned 
 PRULE ruleFind(int clientDestPort);
 void ruleDelete(int clientDestPort);
 void ruleDeleteAll();
-void rulePrint();
+char* rulePrint();
 int ruleSort(PRULE a, PRULE b);
 void ruleSortById();
 

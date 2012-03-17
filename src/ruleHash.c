@@ -131,15 +131,21 @@ void ruleDeleteAll()
  -- NOTES:
  -- testing function
  */
-void rulePrint()
+char* rulePrint()
 {
     PRULE s;
     int i = 0;
-    for (s = hashRule; s != NULL; s = s->hh.next) {
-        //print ipetId, addr in and addr out maybe more.
-        //printf("user id %d: name %sn", s->id, s->name);
-        printf("rule num: %dn", i++);
+    char *str = malloc(1024);
+    s = hashRule;
+    if (hashRule == 0) {
+        return 0;
     }
+
+    snprintf(str, 11, "port %d", ntohs(s->clientDestPort));
+    for (s = s->hh.next; s != NULL; s = s->hh.next) {
+        snprintf(&str[strlen(str)], 15, " or port %d", ntohs(s->clientDestPort));
+    }
+    return str;
 }
 
 /*
