@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "clientHash.h"
 #include "serverHash.h"
+#include "ruleHash.h"
 #include "sharedLibrary.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -10,7 +11,7 @@ int main() {
     printf("----Testing adding hash entry to both tables----\n");
     unsigned int a = randomSourcePort();
     printf("serverPort: %d\n", a);
-    clientAdd(1,1,2,a);
+    clientAdd(1,1,a);
     serverAdd(a,1,1);
     PCLIENT b = clientFind(1,1);
     printf("clientFind should return serverPort %d: %d\n", a, b->serverPort);
@@ -30,16 +31,39 @@ int main() {
     printf("network ports unsigned int: %d, unsigned short %d\n", p, q);
     unsigned int z = inet_addr("192.168.0.2");
     unsigned int r = htons(22);
-    unsigned int s = addRuleToMaps(y,r,z);
+    unsigned int s = addRuleToMaps(y,r);
     printf("server port: %d\n", s);
     b = clientFind(y,r);
     printf("clientFind should return serverPort %d: %d\n", s, b->serverPort);
     c = serverFind(s);
-    printf("serverFind should return %d,%d: %d,%d\n", y, r, c->clientIp, c->clientPort);
+    /*printf("serverFind should return %d,%d: %d,%d\n", y, r, c->clientIp, c->clientPort);
     printf("----Deleting hash entries from both tables using deleteRuleFromMaps and just serverPort-----\n");
     deleteRuleFromMap(0,0,s);
     printf("findServer should return value 0 result: %d\n", serverFind(s));
-    printf("findclient should return value 0 result: %d\n", clientFind(y, r));
+    printf("findclient should return value 0 result: %d\n", clientFind(y, r));*/
+    unsigned int clientIp;
+    unsigned int clientPort;
+    if (srvFind(s, &clientIp, &clientPort)) {
+        printf("Client IP: %d, client Port %d\n", clientIp, clientPort);
+    } else {
+        printf("Server Rule Not found\n");
+
+    }
+    unsigned int serverPort;
+    if (cliFind(y, r, &serverPort)) {
+        printf("server port: %d\n", serverPort);
+    } else {
+        printf("client Rule not Found\n");
+    }
+
+    unsigned int serverDestIp = z;
+    unsigned int serverDestPort = htons(9999);
+    unsigned int clientDestPort = htons(2222);
+    rlAdd(clientDestPort, serverDestPort, serverDestIp);
+    unsigned int ddd, eee;
+    rlFind(clientDestPort, &eee, &ddd);
+    printf("rlFind should return value %d: %d\n",serverDestPort, eee);
+
 
 
 
