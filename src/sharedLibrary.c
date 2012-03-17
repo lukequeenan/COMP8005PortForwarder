@@ -4,7 +4,7 @@
 #include "sharedLibrary.h"
 #include "clientHash.h"
 #include "serverHash.h"
-
+#include "ruleHash.h"
 
 
 /*
@@ -31,6 +31,41 @@ void systemFatal(const char* message)
     exit(EXIT_FAILURE);
 }
 
+int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int serverDestIp) {
+    if (ruleFind(clientDestPort) != 0) {
+        return 0;
+    }
+    ruleAdd(clientDestPort, serverDestPort, serverDestIp);
+    return 1;
+}
+
+int rlFind(unsigned int clientDestPort, unsigned int *serverDestPort, unsigned int *serverDestIp) {
+    PRULE pRule = ruleFind(clientDestPort);
+    if (pRule == 0) {
+        return 0;
+    }
+    *serverDestPort = pRule->serverDestPort;
+    *serverDestIp = pRule->serverDestIp;
+}
+
+/*
+ -- FUNCTION: srvFind
+ --
+ -- DATE: March 17, 2011
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clientPort)
+ --
+ -- RETURNS: 0 on failure 1 on success
+ --
+ -- NOTES:
+ -- This function retrieves the client ip and client port data from the hashmap
+ */
 int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clientPort) {
     PSERVER srv = serverFind(serverPort);
     if (srv == 0) {
@@ -41,6 +76,24 @@ int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clien
     return 1;
 }
 
+/*
+ -- FUNCTION: cliFind
+ --
+ -- DATE: March 17, 2011
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPort)
+ --
+ -- RETURNS: 0 on failure 1 on success
+ --
+ -- NOTES:
+ -- This function retrieves the server source port
+ */
 int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPort) {
     PCLIENT cli = clientFind(clientIp, clientPort);
     if (cli == 0) {
@@ -72,7 +125,7 @@ int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPor
  */
 unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort) {
     unsigned int serverPort = randomSourcePort();
-    clientAdd(clientIp,clientPort, 0, serverPort);
+    clientAdd(clientIp,clientPort, serverPort);
     serverAdd(serverPort, clientIp, clientPort);
     return serverPort;
 }
