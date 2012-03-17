@@ -1,6 +1,10 @@
 #include "eventLoop.h"
 
-void *sniff(void *data)
+/* Local prototypes */
+static int createRawSocketTcp();
+static void createFilter(char *filter, char *nic);
+
+void *pcapLoop(void *data)
 {
     info *myInfo = (info*)data;
     pcap_t *handle;
@@ -10,10 +14,12 @@ void *sniff(void *data)
     char *filter = NULL;
     bpf_u_int32 mask;
     bpf_u_int32 net;
-    int rawSocket = 0;
     
     /* Create the raw socket for sending data through */
-    rawSocket = createRawSocketTcp();
+    myInfo->rawSocket = createRawSocketTcp();
+    
+    /* Create the filter */
+    createFilter(filter, myInfo->nic);
     
     /* Get the properties of the device that we are listening on */
     if (pcap_lookupnet(device, &net, &mask, errorBuffer) == -1)
@@ -47,6 +53,7 @@ void *sniff(void *data)
     }
     
     /* Clean up and exit */
+    free(filter);
     pcap_freecode(&fp);
     pcap_close(handle);
     pthread_exit(NULL);
@@ -74,7 +81,10 @@ static int createRawSocketTcp()
     return rawSocket;
 }
 
-static void createFilter(char *filter)
+/* Need to grab the port filter from hashMap and attach the NIC to it */
+static void createFilter(char *filter, char *nic)
 {
-    snprintf(filter, FILTER_BUFFER, "
+    char *ports = NULL;
+    filter = malloc(sizeof(char) * FILTER_BUFFER);
+    snprintf(filter, FILTER_BUFFER, "%s %s", nic, ports);
 }

@@ -4,6 +4,7 @@
 /* Defines */
 
 /* Typedefs */
+/*
 struct rule
 {
     int listenPort;
@@ -11,14 +12,12 @@ struct rule
     struct rule *next;
 };
 typedef struct rule rule;
-
+*/
 typedef struct
 {
     char nic[6];
-    char externIp[16];
-    char internIp[16];
+    char ip[16];
     int rawSocket;
-    rule *head;
 } info;
 
 /* Function Prototypes */
