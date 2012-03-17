@@ -58,7 +58,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             /* Grab the source port */
             port = tcp->th_sport;
             
-            /* Call the map here and add the data */
+            /* Add the data to the map */
+            addRuleToMaps(ipAddress, port);
         }
         
         /* Get the size of the payload */

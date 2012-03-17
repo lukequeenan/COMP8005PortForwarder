@@ -6,8 +6,8 @@
 /* Typedefs */
 struct rule
 {
-    int internPort;
-    int externPort;
+    int listenPort;
+    int sendPort;
     struct rule *next;
 };
 typedef struct rule rule;
