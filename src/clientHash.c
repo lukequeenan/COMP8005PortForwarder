@@ -45,7 +45,7 @@ unsigned long combineIpPort(unsigned int ip, unsigned int port) {
  --
  -- PROGRAMMER: Warren Voelkl
  --
- -- INTERFACE: void clientAdd(unsigned int clientIp, unsigned int clientPort, unsigned int serverIp, unsigned int serverPort)
+ -- INTERFACE: void clientAdd(unsigned int clientIp, unsigned int clientPort, unsigned int serverPort)
  --
  -- RETURNS: void
  --
@@ -53,13 +53,12 @@ unsigned long combineIpPort(unsigned int ip, unsigned int port) {
  -- wrapper for uthash add macro
  -- IP and Port should be normalized to network byte order
  */
-void clientAdd(unsigned int clientIp, unsigned int clientPort, unsigned int serverIp, unsigned int serverPort)
+void clientAdd(unsigned int clientIp, unsigned int clientPort, unsigned int serverPort)
 {
     PCLIENT cli = malloc(sizeof(CLIENT));
     //#define HASH_ADD(hh,head,fieldname,keylen_in,add)
 
     cli->clientIpPort = combineIpPort(clientIp, clientPort);
-    cli->serverIp = serverIp;
     cli->serverPort = serverPort;
     HASH_ADD_LONG(hashClient, clientIpPort, cli);
 }

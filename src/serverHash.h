@@ -4,7 +4,7 @@
 #include "uthash.h"
 
 typedef struct {
-    int serverID;
+    int serverPort;
     unsigned int clientIp;
     unsigned int clientPort;
     UT_hash_handle hh;

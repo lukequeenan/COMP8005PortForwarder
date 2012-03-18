@@ -25,10 +25,10 @@ PSERVER hashServer = NULL;
 void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clientPort)
 {
     PSERVER srv = malloc(sizeof(SERVER));
-    srv->serverID = serverPort;
+    srv->serverPort = serverPort;
     srv->clientIp = clientIp;
     srv->clientPort = clientPort;
-    HASH_ADD_INT(hashServer, serverID, srv);
+    HASH_ADD_INT(hashServer, serverPort, srv);
 }
 
 /*
@@ -161,7 +161,7 @@ void serverPrint()
  */
 int serverSort(PSERVER a, PSERVER b)
 {
-    return (a->serverID - b->serverID);
+    return (a->serverPort - b->serverPort);
 }
 
 /*
