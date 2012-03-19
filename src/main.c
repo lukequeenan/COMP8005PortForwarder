@@ -54,8 +54,7 @@ int main(int argc, char **argv)
     }
     
     /* Parse the settings file and get all the rules */
-    option = parseConfiguration(configFile, &externInfo, &internInfo);
-    if (option == 0)
+    if (parseConfiguration(configFile, &externInfo, &internInfo) == 0)
     {
         fprintf(stderr, "No rules in configuration file\n");
         return 0;
