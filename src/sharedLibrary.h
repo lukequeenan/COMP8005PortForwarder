@@ -4,21 +4,13 @@
 /* Defines */
 
 /* Typedefs */
-/*
-struct rule
-{
-    int listenPort;
-    int sendPort;
-    struct rule *next;
-};
-typedef struct rule rule;
-*/
+
 typedef struct
 {
+    char externFilter;
     char nic[6];
     char ip[16];
     int rawSocket;
-    int externFilter;
 } info;
 
 /* Function Prototypes */

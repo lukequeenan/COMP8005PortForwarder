@@ -52,7 +52,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         }
         
         /* If we are the external filter, check to see if the SYN bit is set */
-        if (myInfo->externFilter && ((tcp->th_flags & TH_SYN) == TH_SYN))
+        if ((myInfo->externFilter == '1') && ((tcp->th_flags & TH_SYN) == TH_SYN))
         {
             /* Get the source IP */
             ipAddress = ip->ip_src.s_addr;
@@ -72,20 +72,27 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         memcpy(myPacket, packet + SIZE_ETHERNET, ipHeaderSize + tcpHeaderSize + payloadSize);
         getHeadersTcp(myIp, myTcp, myPacket);
         
-        /* Construct the packet */
-        sin.sin_family = AF_INET;
-        if (myInfo->externFilter)
+        /* Set information that changes if we are filtering internal or external
+           data */
+        if (myInfo->externFilter == '1')
         {
-            /* Find the rule to follow and set the data */
+            /* Get the internal machine's listening port and IP */
             rlFind(tcp->th_dport, &myTcp->th_dport, &myIp->ip_dst.s_addr);
-            myIp->ip_src.s_addr = myInfo->ip;
-            sin.sin_port = myTcp->th_dport;
-            sin.sin_addr.s_addr = myInfo->ip;
+            
+            /* Get the forwarding machine's return port */
+            cliFind(myIp->ip_src.s_addr, myTcp->th_sport, &myTcp->th_sport);
         }
         else
         {
-            
+            /* Find the client to forward the packet to */
+            srvFind(myTcp->th_dport, &myIp->ip_dst.s_addr, &myTcp->th_dport);
         }
+        
+        /* Set information that remains the same for both filters */
+        myIp->ip_src.s_addr = myInfo->ip;
+        sin.sin_family = AF_INET;
+        sin.sin_port = myTcp->th_dport;
+        sin.sin_addr.s_addr = myInfo->ip;
         
         /* Send the packet on its way to the internal machine */
         sentData = sendto(myInfo->rawSocket, myPacket, ipHeaderSize +
