@@ -34,7 +34,6 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
 int main(int argc, char **argv)
 {
     int option = 0;
-    int numberOfRules = 0;
     char configFile[PATH_MAX] = {"../settings.conf"};
     info externInfo;
     info internInfo;
@@ -55,7 +54,14 @@ int main(int argc, char **argv)
     }
     
     /* Parse the settings file and get all the rules */
-    numberOfRules = parseConfiguration(configFile, &externInfo, &internInfo);
+    option = parseConfiguration(configFile, &externInfo, &internInfo);
+    if (option == 0)
+    {
+        fprintf(stderr, "No rules in configuration file\n");
+        return 0;
+    }
+    
+    /* Set up the two threads for monitoring the cards */
     
     return 0;
 }
@@ -91,13 +97,14 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         /* Card names should be the first line of data, so get them */
         if (gotCardNames == 0)
         {
-            if (sscanf(line, "%s,%s", externInfo->nic, internInfo->nic) == 2)
+            if (sscanf(line, "%[^,],%[^,]", externInfo->nic, internInfo->nic) == 2)
             {
                 gotCardNames = 1;
             }
+            continue;
         }
         /* Get the data and ensure that it's valid */
-        if (sscanf(line, "%d,%s,%d,%s", &externPort, externIp, &internPort, internIp) == 4)
+        if (sscanf(line, "%d, %[^,], %d, %[^,]", &externPort, externIp, &internPort, internIp) == 4)
         {
             validSettings++;
             /* Convert ip addresses to network form */
@@ -109,5 +116,6 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
             rlAdd(htonl(externPort), htonl(internPort), ip);
         }
     }
+    fclose(file);
     return validSettings;
 }
