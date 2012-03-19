@@ -68,7 +68,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         payloadSize = ntohs(ip->ip_len) - (ipHeaderSize + tcpHeaderSize);
         
         /* Copy the packet over so we can edit it */
-        myPacket = malloc(sizeof(u_char) * ipHeaderSize + tcpHeaderSize + payloadSize);
+        myPacket = malloc((sizeof(u_char) * ipHeaderSize) + tcpHeaderSize + payloadSize);
         memcpy(myPacket, packet + SIZE_ETHERNET, ipHeaderSize + tcpHeaderSize + payloadSize);
         getHeadersTcp(myIp, myTcp, myPacket);
         
