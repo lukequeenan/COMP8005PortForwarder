@@ -1,4 +1,4 @@
-
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,11 +98,13 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         if (sscanf(line, "%d,%s,%d,%s", &externPort, externIp, &internPort, internIp) == 4)
         {
             validSettings++;
-            memcpy(externInfo->ip, externIp, sizeof(char) * 16);
-            memcpy(externInfo->ip, internIp, sizeof(char) * 16);
-            /* TODO: need to make the filter here! */
+            /* Convert ip addresses to network form */
+            inet_pton(AF_INET, externIp, externInfo->ip);
+            inet_pton(AF_INET, internIp, internInfo->ip);
+            
+            /* Add the data to the map */
+            rlAdd(htonl(externPort), htonl(internPort), *internInfo->ip);
         }
     }
-    
     return validSettings;
 }

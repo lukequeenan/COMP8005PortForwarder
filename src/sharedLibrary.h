@@ -18,6 +18,7 @@ typedef struct
     char nic[6];
     char ip[16];
     int rawSocket;
+    int externFilter;
 } info;
 
 /* Function Prototypes */

@@ -47,7 +47,7 @@ void *pcapLoop(void *data)
     }
     
     /* Call pcap_loop and process packets as they are received */
-    if (pcap_loop(handle, -1, forward, NULL) == -1)
+    if (pcap_loop(handle, -1, forward, (u_char*)myInfo) == -1)
     {
         systemFatal("Error in pcap_loop");
     }

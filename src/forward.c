@@ -14,11 +14,11 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     struct sniff_ip *myIp = NULL;
     struct sniff_tcp *myTcp = NULL;
     
-    struct sockaddr_in sin = NULL;
+    struct sockaddr_in sin;
     
     u_char *myPacket = NULL;
     
-    info myInfo = (info*)args;
+    info *myInfo = (info*)args;
     
     int ipHeaderSize = 0;
     int tcpHeaderSize = 0;
@@ -51,8 +51,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             return;
         }
         
-        /* Check to see if the SYN bit is set */
-        if ((tcp->th_flags & TH_SYN) == TH_SYN)
+        /* If we are the external filter, check to see if the SYN bit is set */
+        if (myInfo->externFilter && ((tcp->th_flags & TH_SYN) == TH_SYN))
         {
             /* Get the source IP */
             ipAddress = ip->ip_src.s_addr;
@@ -72,22 +72,25 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         memcpy(myPacket, packet + SIZE_ETHERNET, ipHeaderSize + tcpHeaderSize + payloadSize);
         getHeadersTcp(myIp, myTcp, myPacket);
         
-        /* Find the rule to follow */
-        
-        /* Set the data for forwarding */
-        //myIp->ip_src.s_addr = inet_addr();
-        //myip->ip_dst.s_addr = inet_addr();
-        //myTcp->th_dport = htons();
-        
-        /* Configure the address structure */
+        /* Construct the packet */
         sin.sin_family = AF_INET;
-        sin.sin_port = htons();
-        sin.isn_addr.s_addr = inet_addr();
+        if (myInfo->externFilter)
+        {
+            /* Find the rule to follow and set the data */
+            rlFind(tcp->th_dport, &myTcp->th_dport, &myIp->ip_dst.s_addr);
+            myIp->ip_src.s_addr = myInfo->ip;
+            sin.sin_port = myTcp->th_dport;
+            sin.sin_addr.s_addr = myInfo->ip;
+        }
+        else
+        {
+            
+        }
         
         /* Send the packet on its way to the internal machine */
-        sentData = sendto(rawSocket, myPacket, ipHeaderSize + tcpHeaderSize
-                          + payloadSize, 0, (struct sockaddr *)&sin,
-                          sizeof(sin));
+        sentData = sendto(myInfo->rawSocket, myPacket, ipHeaderSize +
+                          tcpHeaderSize + payloadSize, 0, 
+                          (struct sockaddr *)&sin, sizeof(sin));
 
         /* Clean up */
         free(myPacket);
@@ -107,13 +110,11 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
 static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *myPacket)
 {
     int ipHeaderSize = 0;
-    int tcpHeaderSize = 0;
     
     ip = (struct sniff_ip*)(myPacket);
     ipHeaderSize = IP_HL(ip) * 4;
     
     tcp = (struct sniff_tcp*)(myPacket + ipHeaderSize);
-    tcpHeaderSize = TH_OFF(tcp) * 4;
 }
 /*
 static void tcpPacket()

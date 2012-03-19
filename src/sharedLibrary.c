@@ -110,6 +110,7 @@ int rlFind(unsigned int clientDestPort, unsigned int *serverDestPort, unsigned i
     }
     *serverDestPort = pRule->serverDestPort;
     *serverDestIp = pRule->serverDestIp;
+    return 1;
 }
 
 /*
@@ -189,7 +190,7 @@ int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPor
  */
 unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort) {
     unsigned int serverPort = randomSourcePort();
-    clientAdd(clientIp,clientPort, serverPort);
+    clientAdd(clientIp, clientPort, serverPort);
     serverAdd(serverPort, clientIp, clientPort);
     return serverPort;
 }
