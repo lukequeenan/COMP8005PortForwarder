@@ -72,6 +72,8 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
     char externIp[16];
     char internIp[16];
     
+    unsigned char ip = 0;
+    
     /* Open the configuration file */
     if ((file = fopen(filePath, "r")) == NULL)
     {
@@ -99,11 +101,12 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         {
             validSettings++;
             /* Convert ip addresses to network form */
-            inet_pton(AF_INET, externIp, externInfo->ip);
-            inet_pton(AF_INET, internIp, internInfo->ip);
+            inet_pton(AF_INET, externIp, &externInfo->ip);
+            inet_pton(AF_INET, externIp, &internInfo->ip);
+            inet_pton(AF_INET, internIp, &ip);
             
             /* Add the data to the map */
-            rlAdd(htonl(externPort), htonl(internPort), *internInfo->ip);
+            rlAdd(htonl(externPort), htonl(internPort), ip);
         }
     }
     return validSettings;

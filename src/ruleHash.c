@@ -134,7 +134,6 @@ void ruleDeleteAll()
 char* rulePrint()
 {
     PRULE s;
-    int i = 0;
     char *str = malloc(1024);
     s = hashRule;
     if (hashRule == 0) {
