@@ -104,12 +104,12 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
     char line[SETTINGS_BUFFER];
     FILE *file = NULL;
 
-    int externPort = 0;
-    int internPort = 0;
+    unsigned int externPort = 0;
+    unsigned int internPort = 0;
     char externIp[16];
     char internIp[16];
     
-    unsigned char ip = 0;
+    unsigned int ip = 0;
     
     /* Open the configuration file */
     if ((file = fopen(filePath, "r")) == NULL)
@@ -144,10 +144,9 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
             inet_pton(AF_INET, internIp, &ip);
             
             /* Add the data to the map */
-            rlAdd(htonl(externPort), htonl(internPort), ip);
+            rlAdd(htons(externPort), htons(internPort), ip);
         }
     }
     fclose(file);
-    printf("%s", rlToStr());
     return validSettings;
 }
