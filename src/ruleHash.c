@@ -29,7 +29,7 @@ void ruleAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsig
     pRule->clientDestPort = clientDestPort;
     pRule->serverDestPort = serverDestPort;
     pRule->serverDestIp = serverDestIp;
-    HASH_ADD_INT(hashRule, clientDestPort, pRule);
+    HASH_ADD_SHORT(hashRule, clientDestPort, pRule);
 
 }
 
@@ -55,7 +55,7 @@ void ruleAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsig
 PRULE ruleFind(short clientDestPort)
 {
     PRULE rule;
-    HASH_FIND_INT(hashRule, &clientDestPort, rule);	/* s: output pointer */
+    HASH_FIND_SHORT(hashRule, &clientDestPort, rule);	/* s: output pointer */
     return rule;
 }
 
