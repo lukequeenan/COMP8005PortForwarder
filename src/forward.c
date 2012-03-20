@@ -76,7 +76,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
            data */
         if (myInfo->externFilter == '1')
         {
-            /* Get the internal machine's listening port and IP */
+            /* We are sending packets to the internal machine */
+            /* Get the internal machine's listening port and IP for this port */
             rlFind(tcp->th_dport, &myTcp->th_dport, &myIp->ip_dst.s_addr);
             
             /* Get the forwarding machine's return port */
@@ -84,15 +85,16 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         }
         else
         {
+            /* We are sending packets out to the world */
+            myIp->ip_src.s_addr = myIp->ip_dst.s_addr;
             /* Find the client to forward the packet to */
             srvFind(myTcp->th_dport, &myIp->ip_dst.s_addr, &myTcp->th_dport);
         }
         
         /* Set information that remains the same for both filters */
-        myIp->ip_src.s_addr = myInfo->ip;
         sin.sin_family = AF_INET;
         sin.sin_port = myTcp->th_dport;
-        sin.sin_addr.s_addr = myInfo->ip;
+        sin.sin_addr.s_addr = myIp->ip_dst.s_addr;
         
         /* Send the packet on its way to the internal machine */
         sentData = sendto(myInfo->rawSocket, myPacket, ipHeaderSize +
