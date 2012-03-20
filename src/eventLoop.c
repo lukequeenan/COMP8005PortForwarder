@@ -8,7 +8,6 @@ void *pcapLoop(void *data)
 {
     info *myInfo = (info*)data;
     pcap_t *handle;
-    //char device[] = "wlan0";
     char errorBuffer[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
     char *filter = NULL;
