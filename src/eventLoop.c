@@ -84,7 +84,9 @@ static int createRawSocketTcp()
 /* Need to grab the port filter from hashMap and attach the NIC to it */
 static void createFilter(char *filter, char *nic)
 {
-    char *ports = NULL;
+    char *ports = malloc(sizeof(char) * FILTER_BUFFER);
+    ports = rlToStr();
     filter = malloc(sizeof(char) * FILTER_BUFFER);
-    snprintf(filter, FILTER_BUFFER, "%s %s", nic, ports);
+    snprintf(filter, FILTER_BUFFER, "-i %s %s", nic, ports);
+    free(ports);
 }
