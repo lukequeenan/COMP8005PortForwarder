@@ -128,14 +128,14 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         /* Card names should be the first line of data, so get them */
         if (gotCardNames == 0)
         {
-            if (sscanf(line, "%[^,],%[^,]", externInfo->nic, internInfo->nic) == 2)
+            if (sscanf(line, "%[^,],%[^\n]", externInfo->nic, internInfo->nic) == 2)
             {
                 gotCardNames = 1;
             }
             continue;
         }
         /* Get the data and ensure that it's valid */
-        if (sscanf(line, "%d, %[^,], %d, %[^,]", &externPort, externIp, &internPort, internIp) == 4)
+        if (sscanf(line, "%d, %[^,], %d, %[^\n]", &externPort, externIp, &internPort, internIp) == 4)
         {
             validSettings++;
             /* Convert ip addresses to network form */
@@ -148,5 +148,6 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         }
     }
     fclose(file);
+    printf("%s", rlToStr());
     return validSettings;
 }

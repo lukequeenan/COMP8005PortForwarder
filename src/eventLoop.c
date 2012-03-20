@@ -8,7 +8,7 @@ void *pcapLoop(void *data)
 {
     info *myInfo = (info*)data;
     pcap_t *handle;
-    char device[] = "em0";
+    //char device[] = "wlan0";
     char errorBuffer[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
     char *filter = NULL;
@@ -22,13 +22,13 @@ void *pcapLoop(void *data)
     createFilter(filter, myInfo->nic);
     
     /* Get the properties of the device that we are listening on */
-    if (pcap_lookupnet(device, &net, &mask, errorBuffer) == -1)
+    if (pcap_lookupnet("wlan0", &net, &mask, errorBuffer) == -1)
     {
         systemFatal("Unable to get device settings on pcap_lookupnet");
     }
-    
+    printf("%s", myInfo->nic);
     /* Open the session in promiscuous mode */
-    handle = pcap_open_live(device, SNAP_LEN, 0, 0, errorBuffer);
+    handle = pcap_open_live("wlan0", SNAP_LEN, 0, 0, errorBuffer);
     if (handle == NULL)
     {
         systemFatal("Unable to open live capture");
@@ -45,7 +45,7 @@ void *pcapLoop(void *data)
     {
         systemFatal("Unable to set filter");
     }
-    
+
     /* Call pcap_loop and process packets as they are received */
     if (pcap_loop(handle, -1, forward, (u_char*)myInfo) == -1)
     {
@@ -67,13 +67,13 @@ static int createRawSocketTcp()
     
     /* Create the raw socket for sending data through */
     rawSocket = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
-    setuid(getuid());
+
     if (rawSocket == -1)
     {
         systemFatal("Unable to create raw socket");
     }
     
-    if (setsockopt(rawSocket, IPPROTO_TCP, IP_HDRINCL, val, sizeof(one)) == -1)
+    if (setsockopt(rawSocket, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) == -1)
     {
         systemFatal("Unable to set raw socket options");
     }
@@ -89,4 +89,5 @@ static void createFilter(char *filter, char *nic)
     filter = malloc(sizeof(char) * FILTER_BUFFER);
     snprintf(filter, FILTER_BUFFER, "-i %s %s", nic, ports);
     free(ports);
+    printf("Testing: %s", filter);
 }

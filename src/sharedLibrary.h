@@ -8,7 +8,7 @@
 typedef struct
 {
     char externFilter;
-    char nic[6];
+    char nic[8];
     unsigned char ip;
     int rawSocket;
 } info;
