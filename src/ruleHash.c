@@ -142,9 +142,9 @@ char* rulePrint()
         return 0;
     }
 
-    snprintf(str, 11, "dst port %d", ntohs(s->clientDestPort));
+    snprintf(str, 16, "dst port %d", ntohs(s->clientDestPort));
     for (s = s->hh.next; s != NULL; s = s->hh.next) {
-        snprintf(&str[strlen(str)], 15, " or port %d", ntohs(s->clientDestPort));
+        snprintf(&str[strlen(str)], 20, " or port %d", ntohs(s->clientDestPort));
     }
     return str;
 }
