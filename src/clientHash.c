@@ -24,7 +24,7 @@ PCLIENT hashClient = NULL;
  -- port into the 2nd 32bits of the long giving a unique value
  -- for each client connection.
  */
-unsigned long combineIpPort(unsigned int ip, unsigned int port) {
+unsigned long combineIpPort(unsigned int ip, unsigned short port) {
     unsigned long x;
     unsigned long a = ip;
     unsigned long b = port;
@@ -53,7 +53,7 @@ unsigned long combineIpPort(unsigned int ip, unsigned int port) {
  -- wrapper for uthash add macro
  -- IP and Port should be normalized to network byte order
  */
-void clientAdd(unsigned int clientIp, unsigned int clientPort, unsigned int serverPort)
+void clientAdd(unsigned int clientIp, unsigned short clientPort, unsigned short serverPort)
 {
     PCLIENT cli = malloc(sizeof(CLIENT));
     //#define HASH_ADD(hh,head,fieldname,keylen_in,add)
@@ -82,7 +82,7 @@ void clientAdd(unsigned int clientIp, unsigned int clientPort, unsigned int serv
  -- wrapper for uthash find macro
  -- IP and Port should be normalized to network byte order
  */
-PCLIENT clientFind(unsigned int clientIp, unsigned int clientPort)
+PCLIENT clientFind(unsigned int clientIp, unsigned short clientPort)
 {
     PCLIENT cli;
     unsigned long clientIpPort = combineIpPort(clientIp, clientPort);
@@ -109,7 +109,7 @@ PCLIENT clientFind(unsigned int clientIp, unsigned int clientPort)
  -- wrapper for uthash delete macro
  -- IP and Port should be normalized to network byte order
  */
-void clientDelete(unsigned int clientIp, unsigned int clientPort)
+void clientDelete(unsigned int clientIp, unsigned short clientPort)
 {
     PCLIENT cli = clientFind(clientIp, clientPort);
     if (cli) {

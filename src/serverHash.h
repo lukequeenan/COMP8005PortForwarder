@@ -4,15 +4,15 @@
 #include "uthash.h"
 
 typedef struct {
-    int serverPort;
+    short serverPort;
     unsigned int clientIp;
-    unsigned int clientPort;
+    unsigned short clientPort;
     UT_hash_handle hh;
 } SERVER, *PSERVER;
 
-void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clientPort);
-PSERVER serverFind(int serverPort);
-void serverDelete(int serverPort);
+void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort);
+PSERVER serverFind(unsigned short serverPort);
+void serverDelete(unsigned short serverPort);
 void serverDeleteAll();
 void serverPrint();
 int serverSort(PSERVER a, PSERVER b);

@@ -22,7 +22,7 @@ PSERVER hashServer = NULL;
  -- wrapper for uthash add macro
  -- IP and Port should be normalized to network byte order
  */
-void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clientPort)
+void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort)
 {
     PSERVER srv = malloc(sizeof(SERVER));
     srv->serverPort = serverPort;
@@ -50,7 +50,7 @@ void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clie
  -- wrapper for uthash find macro
  -- IP and Port should be normalized to network byte order
  */
-PSERVER serverFind(int serverPort)
+PSERVER serverFind(unsigned short serverPort)
 {
     PSERVER server;
     HASH_FIND_INT(hashServer, &serverPort, server);	/* s: output pointer */
@@ -75,7 +75,7 @@ PSERVER serverFind(int serverPort)
  -- NOTES:
  -- wrapper for uthash delete macro
  */
-void serverDelete(int serverPort)
+void serverDelete(unsigned short serverPort)
 {
     PSERVER srv = serverFind(serverPort);
     if (srv) {

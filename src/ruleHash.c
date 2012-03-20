@@ -22,7 +22,7 @@ PRULE hashRule = NULL;
  -- wrapper for uthash add macro
  -- IP and Port should be normalized to network byte order
  */
-void ruleAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int serverDestIp)
+void ruleAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp)
 {
     PRULE pRule = malloc(sizeof(RULE));
     pRule->clientDestPort = clientDestPort;
@@ -51,7 +51,7 @@ void ruleAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned 
  -- wrapper for uthash find macro
  -- IP and Port should be normalized to network byte order
  */
-PRULE ruleFind(int clientDestPort)
+PRULE ruleFind(short clientDestPort)
 {
     PRULE rule;
     HASH_FIND_INT(hashRule, &clientDestPort, rule);	/* s: output pointer */
@@ -76,7 +76,7 @@ PRULE ruleFind(int clientDestPort)
  -- NOTES:
  -- wrapper for uthash delete macro
  */
-void ruleDelete(int clientDestPort)
+void ruleDelete(short clientDestPort)
 {
     PRULE pRule = ruleFind(clientDestPort);
     if (pRule) {

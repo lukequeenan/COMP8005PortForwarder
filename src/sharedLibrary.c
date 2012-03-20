@@ -10,7 +10,7 @@
 #include "serverHash.h"
 #include "ruleHash.h"
 
-unsigned int randomSourcePort();
+unsigned short randomSourcePort();
 
 /*
  -- FUNCTION: systemFatal
@@ -77,7 +77,7 @@ char* rlToStr() {
  -- adds an entry to ruleHash useable for parsing client packets and giving the appropriate
  -- service port and service ip
  */
-int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int serverDestIp) {
+int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp) {
     if (ruleFind(clientDestPort) != 0) {
         return 0;
     }
@@ -103,7 +103,7 @@ int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int
  -- NOTES:
  -- retrieves the server ip and port from the clientDestPort parsed from incoming packet
  */
-int rlFind(unsigned int clientDestPort, unsigned int *serverDestPort, unsigned int *serverDestIp) {
+int rlFind(unsigned short clientDestPort, unsigned short *serverDestPort, unsigned int *serverDestIp) {
     PRULE pRule = ruleFind(clientDestPort);
     if (pRule == 0) {
         return 0;
@@ -131,7 +131,7 @@ int rlFind(unsigned int clientDestPort, unsigned int *serverDestPort, unsigned i
  -- NOTES:
  -- This function retrieves the client ip and client port data from the hashmap
  */
-int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clientPort) {
+unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort) {
     PSERVER srv = serverFind(serverPort);
     if (srv == 0) {
         return 0;
@@ -159,7 +159,7 @@ int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clien
  -- NOTES:
  -- This function retrieves the server source port
  */
-int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPort) {
+int cliFind(unsigned int clientIp, unsigned short clientPort, unsigned short *srvPort) {
     PCLIENT cli = clientFind(clientIp, clientPort);
     if (cli == 0) {
         return 0;
@@ -188,8 +188,8 @@ int cliFind(unsigned int clientIp, unsigned int clientPort, unsigned int *srvPor
  -- So, remember a straight copy from the ip and tcp headers from the new client connection
  -- and inet_addr on the configuration server ip.
  */
-unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort) {
-    unsigned int serverPort = randomSourcePort();
+unsigned short addRuleToMaps(unsigned int clientIp, unsigned short clientPort) {
+    unsigned short serverPort = randomSourcePort();
     clientAdd(clientIp, clientPort, serverPort);
     serverAdd(serverPort, clientIp, clientPort);
     return serverPort;
@@ -216,7 +216,7 @@ unsigned int addRuleToMaps(unsigned int clientIp, unsigned int clientPort) {
  -- the rule pair in the hashmaps and delete them both.
  -- Thus this function is usuable from either a client disconnection or a server disconnection.
  */
-void deleteRuleFromMap(unsigned int clientIp, unsigned int clientPort, unsigned int serverPort) {
+void deleteRuleFromMap(unsigned int clientIp, unsigned short clientPort, unsigned short serverPort) {
     if (serverPort == 0) {
         PCLIENT cli = clientFind(clientIp, clientPort);
         serverDelete(cli->serverPort);
@@ -247,10 +247,10 @@ void deleteRuleFromMap(unsigned int clientIp, unsigned int clientPort, unsigned 
  -- This function generates a random number between 20000 and 65000 it then queries
  -- the serverHashmap file to ensure it isn't already in use.
  */
-unsigned int randomSourcePort() {
+unsigned short randomSourcePort() {
     unsigned int iseed = (unsigned int)time(NULL);
     srand (iseed);
-    unsigned int port;
+    unsigned short port;
     do {
         port = htons(rand() % 45000 + 20000);
     } while(serverFind(port) != 0);
