@@ -19,15 +19,15 @@ void *pcapLoop(void *data)
     
     /* Create the filter */
     createFilter(filter, myInfo->nic);
-    
+
     /* Get the properties of the device that we are listening on */
-    if (pcap_lookupnet("wlan0", &net, &mask, errorBuffer) == -1)
+    if (pcap_lookupnet(myInfo->nic, &net, &mask, errorBuffer) == -1)
     {
         systemFatal("Unable to get device settings on pcap_lookupnet");
     }
-    printf("%s", myInfo->nic);
+    
     /* Open the session in promiscuous mode */
-    handle = pcap_open_live("wlan0", SNAP_LEN, 0, 0, errorBuffer);
+    handle = pcap_open_live(myInfo->nic, SNAP_LEN, 0, 0, errorBuffer);
     if (handle == NULL)
     {
         systemFatal("Unable to open live capture");
@@ -88,5 +88,4 @@ static void createFilter(char *filter, char *nic)
     filter = malloc(sizeof(char) * FILTER_BUFFER);
     snprintf(filter, FILTER_BUFFER, "-i %s %s", nic, ports);
     free(ports);
-    printf("Testing: %s", filter);
 }
