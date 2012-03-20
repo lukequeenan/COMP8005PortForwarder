@@ -9,7 +9,7 @@ typedef struct
 {
     char externFilter;
     char nic[8];
-    unsigned char ip;
+    char ip[16];
     int rawSocket;
 } info;
 

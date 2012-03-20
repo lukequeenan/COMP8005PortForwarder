@@ -2,7 +2,7 @@
 
 /* Local prototypes */
 static int createRawSocketTcp();
-static void createFilter(char *filter, char *nic);
+static void createFilter(char *filter, char *nic, char *ip, char externFilter);
 
 void *pcapLoop(void *data)
 {
@@ -18,8 +18,7 @@ void *pcapLoop(void *data)
     myInfo->rawSocket = createRawSocketTcp();
     
     /* Create the filter */
-    createFilter(filter, myInfo->nic);
-
+    createFilter(filter, myInfo->nic, myInfo->ip, myInfo->externFilter);
     /* Get the properties of the device that we are listening on */
     if (pcap_lookupnet(myInfo->nic, &net, &mask, errorBuffer) == -1)
     {
@@ -81,11 +80,18 @@ static int createRawSocketTcp()
 }
 
 /* Need to grab the port filter from hashMap and attach the NIC to it */
-static void createFilter(char *filter, char *nic)
+static void createFilter(char *filter, char *nic, char *ip, char externFilter)
 {
     char *ports = malloc(sizeof(char) * FILTER_BUFFER);
-    ports = rlToStr();
     filter = malloc(sizeof(char) * FILTER_BUFFER);
-    snprintf(filter, FILTER_BUFFER, "-i %s %s", nic, ports);
+    if (externFilter == '1')
+    {
+        ports = rlToStr();
+        snprintf(filter, FILTER_BUFFER, "-i %s dst net %s and %s", nic, ip, ports);
+    }
+    else
+    {
+        snprintf(filter, FILTER_BUFFER, "-i %s src net %s", nic, ip);
+    }
     free(ports);
 }

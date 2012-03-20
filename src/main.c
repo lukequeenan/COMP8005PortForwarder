@@ -139,8 +139,8 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         {
             validSettings++;
             /* Convert ip addresses to network form */
-            inet_pton(AF_INET, externIp, &externInfo->ip);
-            inet_pton(AF_INET, externIp, &internInfo->ip);
+            memcpy(externInfo->ip, externIp, 16);
+            memcpy(internInfo->ip, internIp, 16);
             inet_pton(AF_INET, internIp, &ip);
 
             /* Add the data to the map */
