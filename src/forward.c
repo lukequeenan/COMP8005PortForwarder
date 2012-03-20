@@ -25,9 +25,12 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     int payloadSize = 0;
     int sentData = 0;
     
-    unsigned long ipAddress = 0;
+    unsigned int ipAddress = 0;
     u_short port = 0;
     
+    
+    /* Testing */
+    char t[24];
     
     /* Ethernet header */
     /*ethernet = (struct sniff_ethernet*)packet;*/
@@ -56,6 +59,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         {
             /* Get the source IP */
             ipAddress = ip->ip_src.s_addr;
+            inet_ntop(AF_INET, &ipAddress, t, 24);
             
             /* Grab the source port */
             port = tcp->th_sport;
@@ -68,27 +72,44 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         payloadSize = ntohs(ip->ip_len) - (ipHeaderSize + tcpHeaderSize);
         
         /* Copy the packet over so we can edit it */
-        myPacket = malloc((sizeof(u_char) * ipHeaderSize) + tcpHeaderSize + payloadSize);
+        myPacket = malloc(ipHeaderSize + tcpHeaderSize + payloadSize);
         memcpy(myPacket, packet + SIZE_ETHERNET, ipHeaderSize + tcpHeaderSize + payloadSize);
-        getHeadersTcp(myIp, myTcp, myPacket);
+        
+        /* Break the packet down */
+        myIp = (struct sniff_ip*)myPacket;
+        myTcp = (struct sniff_tcp*)(myPacket + ipHeaderSize);
+        
+        
+        
+        
+        //getHeadersTcp(myIp, myTcp, myPacket);
         
         /* Set information that changes if we are filtering internal or external
            data */
         if (myInfo->externFilter == '1')
         {
             /* We are sending packets to the internal machine */
-            /* Get the internal machine's listening port and IP for this port */
-            rlFind(tcp->th_dport, &myTcp->th_dport, &myIp->ip_dst.s_addr);
             
             /* Get the forwarding machine's return port */
-            cliFind(myIp->ip_src.s_addr, myTcp->th_sport, &myTcp->th_sport);
+            if (cliFind(ip->ip_src.s_addr, tcp->th_sport, &myTcp->th_sport) == 0)
+            {
+                free(myPacket);
+                return;
+            }
+            /* Get the internal machine's listening port and IP for this port */
+            rlFind(tcp->th_dport, &myTcp->th_dport, &myIp->ip_dst.s_addr);
         }
         else
         {
-            /* We are sending packets out to the world */
-            myIp->ip_src.s_addr = myIp->ip_dst.s_addr;
             /* Find the client to forward the packet to */
-            srvFind(myTcp->th_dport, &myIp->ip_dst.s_addr, &myTcp->th_dport);
+            if (srvFind(tcp->th_dport, &myIp->ip_dst.s_addr, &myTcp->th_dport) == 0)
+            {
+                free(myPacket);
+                return;
+            }
+            
+            /* We are sending packets out to the world */
+            myIp->ip_src.s_addr = ip->ip_dst.s_addr;
         }
         
         /* Set information that remains the same for both filters */
