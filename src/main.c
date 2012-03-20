@@ -34,7 +34,6 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
 int main(int argc, char **argv)
 {
     int option = 0;
-    int numberOfRules = 0;
     char configFile[PATH_MAX] = {"../settings.conf"};
     info externInfo;
     info internInfo;
@@ -55,7 +54,13 @@ int main(int argc, char **argv)
     }
     
     /* Parse the settings file and get all the rules */
-    numberOfRules = parseConfiguration(configFile, &externInfo, &internInfo);
+    if (parseConfiguration(configFile, &externInfo, &internInfo) == 0)
+    {
+        fprintf(stderr, "No rules in configuration file\n");
+        return 0;
+    }
+    
+    /* Set up the two threads for monitoring the cards */
     
     return 0;
 }
@@ -71,6 +76,8 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
     int internPort = 0;
     char externIp[16];
     char internIp[16];
+    
+    unsigned char ip = 0;
     
     /* Open the configuration file */
     if ((file = fopen(filePath, "r")) == NULL)
@@ -89,22 +96,25 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         /* Card names should be the first line of data, so get them */
         if (gotCardNames == 0)
         {
-            if (sscanf(line, "%s,%s", externInfo->nic, internInfo->nic) == 2)
+            if (sscanf(line, "%[^,],%[^,]", externInfo->nic, internInfo->nic) == 2)
             {
                 gotCardNames = 1;
             }
+            continue;
         }
         /* Get the data and ensure that it's valid */
-        if (sscanf(line, "%d,%s,%d,%s", &externPort, externIp, &internPort, internIp) == 4)
+        if (sscanf(line, "%d, %[^,], %d, %[^,]", &externPort, externIp, &internPort, internIp) == 4)
         {
             validSettings++;
             /* Convert ip addresses to network form */
-            inet_pton(AF_INET, externIp, externInfo->ip);
-            inet_pton(AF_INET, internIp, internInfo->ip);
+            inet_pton(AF_INET, externIp, &externInfo->ip);
+            inet_pton(AF_INET, externIp, &internInfo->ip);
+            inet_pton(AF_INET, internIp, &ip);
             
             /* Add the data to the map */
-            rlAdd(htonl(externPort), htonl(internPort), *internInfo->ip);
+            rlAdd(htonl(externPort), htonl(internPort), ip);
         }
     }
+    fclose(file);
     return validSettings;
 }

@@ -7,14 +7,14 @@ SRC=/src
 
 PROJECT_NAME=portForwarder.out
 
-project: clientHash.o serverHash.o sharedLibrary.o
-	$(CC) $(CFLAGS) clientHash.o serverHash.o sharedLibrary.o main.c -o $(PROJECT_NAME)
+project: clientHash.o serverHash.o ruleHash.o sharedLibrary.o
+	$(CC) $(CFLAGS) clientHash.o serverHash.o ruleHash.o sharedLibrary.o main.c -o $(PROJECT_NAME)
 
 clean:
 	rm -f *.o *.bak *.out ex
 
-mapHash: uthash.h clientHash.c clientHash.h serverHash.c serverHash.h
-	$(CC) $(CFLAGS) -O -c clientHash.c serverHash.c
+mapHash: uthash.h ruleHash.c ruleHash.h clientHash.c clientHash.h serverHash.c serverHash.h
+	$(CC) $(CFLAGS) -O -c clientHash.c serverHash.c ruleHash.c
 
 eventLoop: sharedLibrary.o eventLoop.c eventLoop.h
 	$(CC) $(CFLAGS) $(TFLAG) -O -c eventLoop.c

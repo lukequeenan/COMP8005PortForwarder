@@ -134,14 +134,14 @@ void ruleDeleteAll()
 char* rulePrint()
 {
     PRULE s;
-    int i = 0;
     char *str = malloc(1024);
     s = hashRule;
     if (hashRule == 0) {
+        free(str);
         return 0;
     }
 
-    snprintf(str, 11, "port %d", ntohs(s->clientDestPort));
+    snprintf(str, 11, "dst port %d", ntohs(s->clientDestPort));
     for (s = s->hh.next; s != NULL; s = s->hh.next) {
         snprintf(&str[strlen(str)], 15, " or port %d", ntohs(s->clientDestPort));
     }
