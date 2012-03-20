@@ -142,7 +142,7 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
             inet_pton(AF_INET, externIp, &externInfo->ip);
             inet_pton(AF_INET, externIp, &internInfo->ip);
             inet_pton(AF_INET, internIp, &ip);
-            
+
             /* Add the data to the map */
             rlAdd(htonl(externPort), htonl(internPort), ip);
         }
