@@ -26,11 +26,6 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     int sentData = 0;
     
     unsigned int ipAddress = 0;
-    u_short port = 0;
-    
-    
-    /* Testing */
-    char t[24];
     
     /* Ethernet header */
     /*ethernet = (struct sniff_ethernet*)packet;*/
@@ -54,18 +49,18 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             return;
         }
         
+        /* Apparently the filter means nothing! */
+        inet_pton(AF_INET, myInfo->ip, &ipAddress);
+        if ((myInfo->externFilter == '1') && (ipAddress == ip->ip_src.s_addr))
+        {
+            return;
+        }
+        
         /* If we are the external filter, check to see if the SYN bit is set */
         if ((myInfo->externFilter == '1') && ((tcp->th_flags & TH_SYN) == TH_SYN))
         {
-            /* Get the source IP */
-            ipAddress = ip->ip_src.s_addr;
-            inet_ntop(AF_INET, &ipAddress, t, 24);
-            
-            /* Grab the source port */
-            port = tcp->th_sport;
-            
             /* Add the data to the map */
-            addRuleToMaps(ipAddress, port);
+            addRuleToMaps(ip->ip_src.s_addr, tcp->th_sport);
         }
         
         /* Get the size of the payload */
@@ -98,6 +93,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             }
             /* Get the internal machine's listening port and IP for this port */
             rlFind(tcp->th_dport, &myTcp->th_dport, &myIp->ip_dst.s_addr);
+            myIp->ip_src.s_addr = ip->ip_dst.s_addr;
         }
         else
         {
@@ -126,7 +122,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         {
             systemFatal("Unable to send packet");
         }
-
+        
         /* Clean up */
         free(myPacket);
         
