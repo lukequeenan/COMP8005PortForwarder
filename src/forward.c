@@ -7,7 +7,7 @@ static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *my
 
 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    const struct sniff_ethernet *ethernet = NULL;
+    /*const struct sniff_ethernet *ethernet = NULL;*/
     const struct sniff_ip *ip = NULL;
     const struct sniff_tcp *tcp = NULL;
     
@@ -30,7 +30,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     
     
     /* Ethernet header */
-    ethernet = (struct sniff_ethernet*)packet;
+    /*ethernet = (struct sniff_ethernet*)packet;*/
     
     /* Get the IP header and offset value */
     ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
@@ -98,6 +98,11 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         sentData = sendto(myInfo->rawSocket, myPacket, ipHeaderSize +
                           tcpHeaderSize + payloadSize, 0, 
                           (struct sockaddr *)&sin, sizeof(sin));
+
+        if (sentData == -1)
+        {
+            systemFatal("Unable to send packet");
+        }
 
         /* Clean up */
         free(myPacket);

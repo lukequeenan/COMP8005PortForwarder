@@ -1,5 +1,6 @@
 #include "ruleHash.h"
 #include <stdio.h>
+#include <arpa/inet.h>
 
 PRULE hashRule = NULL;
 

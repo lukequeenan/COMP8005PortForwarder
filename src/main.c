@@ -1,11 +1,13 @@
 #include <arpa/inet.h>
+//#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <limits.h>
 
 #include "sharedLibrary.h"
+#include "eventLoop.h"
 
 #define SETTINGS_BUFFER 1024
 
@@ -37,6 +39,8 @@ int main(int argc, char **argv)
     char configFile[PATH_MAX] = {"../settings.conf"};
     info externInfo;
     info internInfo;
+    pthread_attr_t attr;
+    pthread_t threads[2];
     
     /* Get command line parameters */
     while ((option = getopt(argc, argv, "f:")) != -1)
@@ -60,10 +64,38 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    /* Set up the two threads for monitoring the cards */
+    /* Create the attributes for the threads */
+    pthread_attr_init(&attr);
+    
+    /* Set the thread to joinable (implementation safe) */
+    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) != 0)
+    {
+        systemFatal("Unable to set threads to joinable");
+    }
+    
+    /* Set the thread to system scope */
+    if (pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) != 0)
+    {
+        systemFatal("Unable to set threads to system scope");
+    }
+    
+    /* Set the flag for external and internal filters */
+    externInfo.externFilter = '1';
+    internInfo.externFilter = '0';
+    
+    /* Create the threads */
+    pthread_create(&threads[0], &attr, pcapLoop, (void *)&externInfo);
+    pthread_create(&threads[1], &attr, pcapLoop, (void *)&internInfo);
+
+    /* Reclaim some memory */
+    pthread_attr_destroy(&attr);
+    
+    /* Reap the threads */
+    pthread_join(threads[0], NULL);
+    pthread_join(threads[1], NULL);
     
     return 0;
-}
+} 
 
 static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo)
 {
