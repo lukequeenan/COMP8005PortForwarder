@@ -42,14 +42,14 @@ int main() {
     printf("findServer should return value 0 result: %d\n", serverFind(s));
     printf("findclient should return value 0 result: %d\n", clientFind(y, r));*/
     unsigned int clientIp;
-    unsigned int clientPort;
+    unsigned short clientPort;
     if (srvFind(s, &clientIp, &clientPort)) {
         printf("Client IP: %d, client Port %d\n", clientIp, clientPort);
     } else {
         printf("Server Rule Not found\n");
 
     }
-    unsigned int serverPort;
+    unsigned short serverPort;
     if (cliFind(y, r, &serverPort)) {
         printf("server port: %d\n", serverPort);
     } else {
@@ -60,7 +60,8 @@ int main() {
     unsigned int serverDestPort = htons(9999);
     unsigned int clientDestPort = htons(22222);
     rlAdd(clientDestPort, serverDestPort, serverDestIp);
-    unsigned int ddd, eee;
+    unsigned int ddd;
+    unsigned short eee;
     rlFind(clientDestPort, &eee, &ddd);
     printf("rlFind should return value %d: %d\n",serverDestPort, eee);
 
