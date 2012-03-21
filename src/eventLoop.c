@@ -87,11 +87,11 @@ static void createFilter(char *filter, char *nic, char *ip, char externFilter)
     if (externFilter == '1')
     {
         ports = rlToStr();
-        snprintf(filter, FILTER_BUFFER, "-i %s dst net %s and %s", nic, ip, ports);
+        snprintf(filter, FILTER_BUFFER, "-i %s dst host %s and %s", nic, ip, ports);
     }
     else
     {
-        snprintf(filter, FILTER_BUFFER, "-i %s src net %s", nic, ip);
+        snprintf(filter, FILTER_BUFFER, "-i %s src host %s", nic, ip);
     }
     free(ports);
 }
