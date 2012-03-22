@@ -2,6 +2,7 @@
 
 /* Local prototypes */
 static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *myPacket);
+unsigned short csum(unsigned short *buf, int nwords);
 //static void tcpPacket();
 //static void udpPacket();
 
@@ -113,9 +114,12 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         sin.sin_port = myTcp->th_dport;
         sin.sin_addr.s_addr = myIp->ip_dst.s_addr;
         
-        /* Set the checksums to 0 so the network card creates them */
+        /* Set the IP checksum to 0 */
         myIp->ip_sum = 0;
-        myTcp->th_sum = 0;
+        
+        /* Create and assign the the checksum */
+        myTcp->th_sum = csum((unsigned short *) myPacket, ipHeaderSize +
+                             tcpHeaderSize + payloadSize);
         
         /* Send the packet on its way to the internal machine */
         sentData = sendto(myInfo->rawSocket, myPacket, ipHeaderSize +
@@ -151,6 +155,19 @@ static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *my
     
     tcp = (struct sniff_tcp*)(myPacket + ipHeaderSize);
 }
+
+unsigned short csum(unsigned short *buf, int nwords)
+{
+    unsigned long sum;
+    for(sum=0; nwords>0; nwords--)
+    {
+        sum += *buf++;
+    }
+    sum = (sum >> 16) + (sum &0xffff);
+    sum += (sum >> 16);
+    return (unsigned short)(~sum);
+}
+
 /*
 static void tcpPacket()
 {
