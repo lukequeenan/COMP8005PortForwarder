@@ -1,7 +1,6 @@
 #include "eventLoop.h"
 
 /* Local prototypes */
-static int createRawSocketTcp();
 static void createFilter(char *filter, char *nic, char *ip, char externFilter);
 
 void *pcapLoop(void *data)
@@ -13,31 +12,36 @@ void *pcapLoop(void *data)
     char *filter = NULL;
     bpf_u_int32 mask;
     bpf_u_int32 net;
-    
-    /* Create the raw socket for sending data through */
-    myInfo->rawSocket = createRawSocketTcp();
-    
+
+    /* Create the libnet context */
+    myInfo->myPacket = libnet_init(LIBNET_RAW4, myInfo->outgoingNic, errorBuffer);
+    if (myInfo->myPacket == NULL)
+    {
+        systemFatal("Unable to set up libnet context");
+    }
+
     /* Create the filter */
-    createFilter(filter, myInfo->nic, myInfo->ip, myInfo->externFilter);
+    createFilter(filter, myInfo->incomingNic, myInfo->ip, myInfo->externFilter);
+    
     /* Get the properties of the device that we are listening on */
-    if (pcap_lookupnet(myInfo->nic, &net, &mask, errorBuffer) == -1)
+    if (pcap_lookupnet(myInfo->incomingNic, &net, &mask, errorBuffer) == -1)
     {
         systemFatal("Unable to get device settings on pcap_lookupnet");
     }
-    
+
     /* Open the session in promiscuous mode */
     handle = pcap_open_live(myInfo->nic, SNAP_LEN, 0, 0, errorBuffer);
     if (handle == NULL)
     {
         systemFatal("Unable to open live capture");
     }
-    
+
     /* Parse the filter to the capture */
     if (pcap_compile(handle, &fp, filter, 0, PCAP_NETMASK_UNKNOWN) == -1)
     {
         systemFatal("Unable to compile filter");
     }
-    
+
     /* Set the filter on the listening device */
     if (pcap_setfilter(handle, &fp) == -1)
     {
@@ -49,34 +53,13 @@ void *pcapLoop(void *data)
     {
         systemFatal("Error in pcap_loop");
     }
-    
+
     /* Clean up and exit */
     free(filter);
     pcap_freecode(&fp);
     pcap_close(handle);
+    libnet_destroy(myInfo->myPacket)
     pthread_exit(NULL);
-}
-
-static int createRawSocketTcp()
-{
-    int rawSocket = 0;
-    int one = 1;
-    const int *val = &one;
-    
-    /* Create the raw socket for sending data through */
-    rawSocket = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
-
-    if (rawSocket == -1)
-    {
-        systemFatal("Unable to create raw socket");
-    }
-    
-    if (setsockopt(rawSocket, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) == -1)
-    {
-        systemFatal("Unable to set raw socket options");
-    }
-    
-    return rawSocket;
 }
 
 /* Need to grab the port filter from hashMap and attach the NIC to it */

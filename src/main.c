@@ -128,8 +128,10 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         /* Card names should be the first line of data, so get them */
         if (gotCardNames == 0)
         {
-            if (sscanf(line, "%[^,],%[^\n]", externInfo->nic, internInfo->nic) == 2)
+            if (sscanf(line, "%[^,],%[^\n]", externInfo->incomingNic, internInfo->incomingNic) == 2)
             {
+                memcpy(externInfo->outgoingNic, internInfo->incomingNic, 8)
+                memcpy(internInfo->outgoingNic, externInfo->incomingNic, 8);
                 gotCardNames = 1;
             }
             continue;
