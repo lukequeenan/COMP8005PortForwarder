@@ -113,6 +113,10 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         sin.sin_port = myTcp->th_dport;
         sin.sin_addr.s_addr = myIp->ip_dst.s_addr;
         
+        /* Set the checksums to 0 so the network card creates them */
+        myIp->ip_sum = 0;
+        myTcp->th_sum = 0;
+        
         /* Send the packet on its way to the internal machine */
         sentData = sendto(myInfo->rawSocket, myPacket, ipHeaderSize +
                           tcpHeaderSize + payloadSize, 0, 
