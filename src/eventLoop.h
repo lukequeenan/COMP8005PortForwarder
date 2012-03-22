@@ -1,6 +1,7 @@
 #ifndef EVENT_LOOP_H
 #define EVENT_LOOP_H
 
+#include <libnet.h>
 #include <pcap.h>
 #include <pthread.h>
 #include <unistd.h>

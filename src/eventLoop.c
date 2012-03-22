@@ -30,7 +30,7 @@ void *pcapLoop(void *data)
     }
 
     /* Open the session in promiscuous mode */
-    handle = pcap_open_live(myInfo->nic, SNAP_LEN, 0, 0, errorBuffer);
+    handle = pcap_open_live(myInfo->incomingNic, SNAP_LEN, 0, 0, errorBuffer);
     if (handle == NULL)
     {
         systemFatal("Unable to open live capture");
@@ -58,7 +58,7 @@ void *pcapLoop(void *data)
     free(filter);
     pcap_freecode(&fp);
     pcap_close(handle);
-    libnet_destroy(myInfo->myPacket)
+    libnet_destroy(myInfo->myPacket);
     pthread_exit(NULL);
 }
 

@@ -130,7 +130,7 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         {
             if (sscanf(line, "%[^,],%[^\n]", externInfo->incomingNic, internInfo->incomingNic) == 2)
             {
-                memcpy(externInfo->outgoingNic, internInfo->incomingNic, 8)
+                memcpy(externInfo->outgoingNic, internInfo->incomingNic, 8);
                 memcpy(internInfo->outgoingNic, externInfo->incomingNic, 8);
                 gotCardNames = 1;
             }
