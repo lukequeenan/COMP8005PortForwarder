@@ -85,8 +85,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         
         /* Make the new TCP packet */
         ptag = libnet_build_tcp(
-            sport,                                      /* source port */
-            dport,                                      /* destination port */
+            htons(sport),                                      /* source port */
+            htons(dport),                                      /* destination port */
             tcp->th_seq,                                /* sequence number */
             tcp->th_ack,                                /* acknowledgement num */
             TH_SYN,                                     /* control flags */
