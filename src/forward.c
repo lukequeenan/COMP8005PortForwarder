@@ -72,6 +72,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             {
                 return;
             }
+            /* Need to implement another rule find in the hash map to find this*/
+            sport = htons(22); /* Testing!!!! NEED TO FIX ^*/
             
             /* We are sending packets out to the world */
             src_ip.s_addr = ip->ip_dst.s_addr;
