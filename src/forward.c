@@ -85,8 +85,8 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             htons(dport),                                      /* destination port */
             tcp->th_seq,                                /* sequence number */
             tcp->th_ack,                                /* acknowledgement num */
-            TH_SYN,                                     /* control flags */
-            32767,                                      /* window size */
+            tcp->th_flags,                                     /* control flags */
+            tcp->th_win,                                      /* window size */
             0,                                          /* checksum */
             tcp->th_urp,                                /* urgent pointer */
             tcpHeaderSize + payloadSize,                /* TCP packet size */
@@ -97,6 +97,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     
         if (ptag == -1)
         {
+            libnet_clear_packet(myInfo->myPacket);
             return;
         }
         
@@ -115,8 +116,16 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             myInfo->myPacket,                                          /* libnet handle */
             0);                                         /* libnet id */                                 
         
+        if (ptag == -1)
+        {
+            libnet_clear_packet(myInfo->myPacket);
+            return;
+        }
         
         libnet_write(myInfo->myPacket);
+        
+        /* Clear the libnet system */
+        libnet_clear_packet(myInfo->myPacket);
         return;
     }
 }
