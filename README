@@ -1,1 +1,5 @@
-Port Forwarder
+Port Forwarder using libpcap and libnet.
+
+Authors:
+Luke Queenan
+Warren Voelkl
