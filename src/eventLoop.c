@@ -41,7 +41,7 @@ void *pcapLoop(void *data)
     {
         systemFatal("Unable to compile filter");
     }
-
+    printf("%s\n", filter);
     /* Set the filter on the listening device */
     if (pcap_setfilter(handle, &fp) == -1)
     {
