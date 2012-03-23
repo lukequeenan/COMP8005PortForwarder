@@ -9,8 +9,6 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     const struct sniff_ip *ip = NULL;
     const struct sniff_tcp *tcp = NULL;
     
-    u_char *payload = NULL;
-    
     info *myInfo = (info*)args;
     
     int ipHeaderSize = 0;
@@ -52,8 +50,6 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         
         /* Get the size of the payload */
         payloadSize = ntohs(ip->ip_len) - (ipHeaderSize + tcpHeaderSize);
-        payload = malloc(sizeof(u_char) * payloadSize);
-        memcpy(payload, packet + SIZE_ETHERNET + ipHeaderSize + tcpHeaderSize, payloadSize);
         
         /* Get the source and destination information from the map */
         if (myInfo->externFilter == '1')
@@ -63,7 +59,6 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             /* Get the forwarding machine's return port */
             if (cliFind(ip->ip_src.s_addr, tcp->th_sport, &sport) == 0)
             {
-                free(payload);
                 return;
             }
             /* Get the internal machine's listening port and IP for this port */
@@ -75,7 +70,6 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             /* Find the client to forward the packet to */
             if (srvFind(tcp->th_dport, &dst_ip.s_addr, &dport) == 0)
             {
-                free(payload);
                 return;
             }
             
@@ -94,14 +88,13 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             0,                                          /* checksum */
             tcp->th_urp,                                /* urgent pointer */
             tcpHeaderSize + payloadSize,                /* TCP packet size */
-            payload,                                    /* payload */
+            (u_char *)tcp + tcpHeaderSize,              /* payload */
             payloadSize,                                /* payload size */
             myInfo->myPacket,                           /* libnet handle */
             0);                                         /* libnet id */
     
         if (ptag == -1)
         {
-            free(payload);
             return;
         }
         
@@ -122,8 +115,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         
         
         libnet_write(myInfo->myPacket);
-        /* Free the memory */
-        free(payload);
+        return;
     }
 }
 
