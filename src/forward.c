@@ -83,7 +83,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         ptag = libnet_build_tcp(
             htons(sport),                                      /* source port */
             htons(dport),                                      /* destination port */
-            tcp->th_seq,                                /* sequence number */
+            ntohl(tcp->th_seq),                                /* sequence number */
             tcp->th_ack,                                /* acknowledgement num */
             tcp->th_flags,                                     /* control flags */
             tcp->th_win,                                      /* window size */
