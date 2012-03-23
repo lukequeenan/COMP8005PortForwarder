@@ -9,7 +9,7 @@ void *pcapLoop(void *data)
     pcap_t *handle;
     char errorBuffer[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
-    char *filter = NULL;
+    char *filter = malloc(sizeof(char) * FILTER_BUFFER);
     bpf_u_int32 mask;
     bpf_u_int32 net;
 
@@ -37,7 +37,7 @@ void *pcapLoop(void *data)
     }
 
     /* Parse the filter to the capture */
-    if (pcap_compile(handle, &fp, filter, 0, PCAP_NETMASK_UNKNOWN) == -1)
+    if (pcap_compile(handle, &fp, filter, 0, net) == -1)
     {
         systemFatal("Unable to compile filter");
     }
@@ -65,16 +65,17 @@ void *pcapLoop(void *data)
 /* Need to grab the port filter from hashMap and attach the NIC to it */
 static void createFilter(char *filter, char *nic, char *ip, char externFilter)
 {
-    char *ports = malloc(sizeof(char) * FILTER_BUFFER);
-    filter = malloc(sizeof(char) * FILTER_BUFFER);
+    char *ports = NULL;
     if (externFilter == '1')
     {
+        ports = malloc(sizeof(char) * FILTER_BUFFER);
         ports = rlToStr();
         snprintf(filter, FILTER_BUFFER, "-i %s dst host %s and %s", nic, ip, ports);
+        free(ports);
     }
     else
     {
         snprintf(filter, FILTER_BUFFER, "-i %s src host %s", nic, ip);
     }
-    free(ports);
+    
 }
