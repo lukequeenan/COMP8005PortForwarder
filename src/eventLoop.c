@@ -1,7 +1,7 @@
 #include "eventLoop.h"
 
 /* Local prototypes */
-static void createFilter(char *filter, char *nic, char *ip, char externFilter);
+static void createFilter(char *filter, char *ip, char externFilter);
 
 void *pcapLoop(void *data)
 {
@@ -21,7 +21,7 @@ void *pcapLoop(void *data)
     }
 
     /* Create the filter */
-    createFilter(filter, myInfo->incomingNic, myInfo->ip, myInfo->externFilter);
+    createFilter(filter, myInfo->ip, myInfo->externFilter);
     
     /* Get the properties of the device that we are listening on */
     if (pcap_lookupnet(myInfo->incomingNic, &net, &mask, errorBuffer) == -1)
@@ -63,19 +63,19 @@ void *pcapLoop(void *data)
 }
 
 /* Need to grab the port filter from hashMap and attach the NIC to it */
-static void createFilter(char *filter, char *nic, char *ip, char externFilter)
+static void createFilter(char *filter, char *ip, char externFilter)
 {
     char *ports = NULL;
     if (externFilter == '1')
     {
         ports = malloc(sizeof(char) * FILTER_BUFFER);
         ports = rlToStr();
-        snprintf(filter, FILTER_BUFFER, "-i %s dst host %s and %s", nic, ip, ports);
+        snprintf(filter, FILTER_BUFFER, "dst host %s and %s", ip, ports);
         free(ports);
     }
     else
     {
-        snprintf(filter, FILTER_BUFFER, "-i %s src host %s", nic, ip);
+        snprintf(filter, FILTER_BUFFER, "src host %s", ip);
     }
     
 }
