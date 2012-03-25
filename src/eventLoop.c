@@ -66,16 +66,19 @@ void *pcapLoop(void *data)
 static void createFilter(char *filter, char *ip, char externFilter)
 {
     char *ports = NULL;
+    char *internRules = NULL;
     if (externFilter == '1')
     {
         ports = malloc(sizeof(char) * FILTER_BUFFER);
-        ports = rlToStr();
-        snprintf(filter, FILTER_BUFFER, "dst host %s and %s", ip, ports);
+        ports = rlExternToStr();
+        snprintf(filter, FILTER_BUFFER, "%s", ports);
         free(ports);
     }
     else
     {
-        snprintf(filter, FILTER_BUFFER, "src host %s", ip);
+        internRules = rlInternToStr();
+        snprintf(filter, FILTER_BUFFER, "%s", internRules);
+        free(internRules);
     }
     
 }

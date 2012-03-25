@@ -37,7 +37,7 @@ void systemFatal(const char* message)
 }
 
 /*
- -- FUNCTION: rlToStr
+ -- FUNCTION: rlExternToStr();
  --
  -- DATE: March 17, 2011
  --
@@ -47,15 +47,19 @@ void systemFatal(const char* message)
  --
  -- PROGRAMMER: Warren Voelkl
  --
- -- INTERFACE: char* rlToStr()
+ -- INTERFACE: char* rlExternToStr()
  --
  -- RETURNS: 0 on failure or a string useable by pcap to filter by ports eg "port 22 or port 23"
  --
  -- NOTES:
  -- wrapper for to string method from ruleHash
  */
-char* rlToStr() {
+char* rlExternToStr() {
     return rulePrint();
+}
+
+char* rlInternToStr() {
+    return internRulePrint();
 }
 
 /*
@@ -77,11 +81,11 @@ char* rlToStr() {
  -- adds an entry to ruleHash useable for parsing client packets and giving the appropriate
  -- service port and service ip
  */
-int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp) {
+int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp) {
     if (ruleFind(clientDestPort) != 0) {
         return 0;
     }
-    ruleAdd(clientDestPort, serverDestPort, serverDestIp);
+    ruleAdd(clientDestPort, serverDestPort, serverDestIp, serverIp, forwarderIp);
     return 1;
 }
 

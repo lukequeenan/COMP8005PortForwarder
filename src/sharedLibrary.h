@@ -23,7 +23,8 @@ void deleteRuleFromMap(unsigned int clientIp, unsigned short clientPort, unsigne
 int cliFind(unsigned int clientIp, unsigned short clientPort, unsigned short *srvPort);
 unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort, unsigned short *clientSrcPort);
 int rlFind(unsigned short clientDestPort, unsigned short *serverDestPort, unsigned int *serverDestIp);
-int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp);
-char* rlToStr();
+int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp);
+char* rlExternToStr();
+char* rlInternToStr();
 
 #endif

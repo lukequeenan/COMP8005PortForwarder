@@ -9,6 +9,7 @@
 #include "sharedLibrary.h"
 #include "eventLoop.h"
 
+#define IPSTRLENGTH      16
 #define SETTINGS_BUFFER 1024
 
 /* Local Prototypes */
@@ -106,9 +107,10 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
 
     unsigned int externPort = 0;
     unsigned int internPort = 0;
-    char externIp[16];
-    char internIp[16];
-    
+    char externIp[IPSTRLENGTH];
+    char internIp[IPSTRLENGTH];
+    char *forwarderIp;
+    char *serverIp;
     unsigned int ip = 0;
     
     /* Open the configuration file */
@@ -130,6 +132,7 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         {
             if (sscanf(line, "%[^,],%[^\n]", externInfo->incomingNic, internInfo->incomingNic) == 2)
             {
+
                 memcpy(externInfo->outgoingNic, internInfo->incomingNic, 8);
                 memcpy(internInfo->outgoingNic, externInfo->incomingNic, 8);
                 gotCardNames = 1;
@@ -139,14 +142,19 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         /* Get the data and ensure that it's valid */
         if (sscanf(line, "%d, %[^,], %d, %[^\n]", &externPort, externIp, &internPort, internIp) == 4)
         {
+            forwarderIp = malloc(IPSTRLENGTH);
+            serverIp = malloc(IPSTRLENGTH);
             validSettings++;
+
             /* Convert ip addresses to network form */
-            memcpy(externInfo->ip, externIp, 16);
-            memcpy(internInfo->ip, internIp, 16);
+            memcpy(externInfo->ip, externIp, IPSTRLENGTH);
+            memcpy(internInfo->ip, internIp, IPSTRLENGTH);
+            memcpy(forwarderIp, externIp, IPSTRLENGTH);
+            memcpy(serverIp, internIp, IPSTRLENGTH);
             inet_pton(AF_INET, internIp, &ip);
 
             /* Add the data to the map */
-            rlAdd(htons(externPort), htons(internPort), ip);
+            rlAdd(htons(externPort), htons(internPort), ip, serverIp, forwarderIp);
         }
     }
     fclose(file);
