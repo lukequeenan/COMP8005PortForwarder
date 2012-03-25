@@ -45,7 +45,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         if ((myInfo->externFilter == '1') && ((tcp->th_flags & TH_SYN) == TH_SYN))
         {
             /* Add the data to the map */
-            addRuleToMaps(ip->ip_src.s_addr, tcp->th_sport);
+            addRuleToMaps(ip->ip_src.s_addr, tcp->th_sport, tcp->th_dport);
         }
         
         /* Get the size of the payload */
@@ -68,12 +68,12 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         else
         {
             /* Find the client to forward the packet to */
-            if (srvFind(tcp->th_dport, &dst_ip.s_addr, &dport) == 0)
+            if (srvFind(tcp->th_dport, &dst_ip.s_addr, &dport, &sport) == 0)
             {
                 return;
             }
             /* Need to implement another rule find in the hash map to find this*/
-            sport = htons(22); /* Testing!!!! NEED TO FIX ^*/
+            //sport = htons(22); /* Testing!!!! NEED TO FIX ^*/
             
             /* We are sending packets out to the world */
             src_ip.s_addr = ip->ip_dst.s_addr;

@@ -131,11 +131,12 @@ int rlFind(unsigned short clientDestPort, unsigned short *serverDestPort, unsign
  -- NOTES:
  -- This function retrieves the client ip and client port data from the hashmap
  */
-unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort) {
+unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort, unsigned short *clientSrcPort) {
     PSERVER srv = serverFind(serverPort);
     if (srv == 0) {
         return 0;
     }
+    *clientSrcPort = srv->clientSrcPort;
     *clientIp = srv->clientIp;
     *clientPort = srv->clientPort;
     return 1;
@@ -188,10 +189,10 @@ int cliFind(unsigned int clientIp, unsigned short clientPort, unsigned short *sr
  -- So, remember a straight copy from the ip and tcp headers from the new client connection
  -- and inet_addr on the configuration server ip.
  */
-unsigned short addRuleToMaps(unsigned int clientIp, unsigned short clientPort) {
+unsigned short addRuleToMaps(unsigned int clientIp, unsigned short clientPort, unsigned short clientSrcPort) {
     unsigned short serverPort = randomSourcePort();
     clientAdd(clientIp, clientPort, serverPort);
-    serverAdd(serverPort, clientIp, clientPort);
+    serverAdd(serverPort, clientIp, clientPort, clientSrcPort);
     return serverPort;
 }
 

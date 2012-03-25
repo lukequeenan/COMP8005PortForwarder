@@ -7,10 +7,11 @@ typedef struct {
     short serverPort;
     unsigned int clientIp;
     unsigned short clientPort;
+    unsigned short clientSrcPort;
     UT_hash_handle hh;
 } SERVER, *PSERVER;
 
-void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort);
+void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort, unsigned short clientSrcPort);
 PSERVER serverFind(unsigned short serverPort);
 void serverDelete(unsigned short serverPort);
 void serverDeleteAll();

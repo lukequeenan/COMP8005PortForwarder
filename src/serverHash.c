@@ -22,12 +22,13 @@ PSERVER hashServer = NULL;
  -- wrapper for uthash add macro
  -- IP and Port should be normalized to network byte order
  */
-void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort)
+void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort, unsigned short clientSrcPort)
 {
     PSERVER srv = malloc(sizeof(SERVER));
     srv->serverPort = serverPort;
     srv->clientIp = clientIp;
     srv->clientPort = clientPort;
+    srv->clientSrcPort = clientSrcPort;
     HASH_ADD_SHORT(hashServer, serverPort, srv);
 }
 
