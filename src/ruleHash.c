@@ -15,12 +15,14 @@ PRULE hashRule = NULL;
  --
  -- PROGRAMMER: Warren Voelkl
  --
- -- INTERFACE: void ruleAdd(unsigned int rulePort, unsigned int clientIp, unsigned int clientPort)
+ -- void ruleAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp)
  --
  -- RETURNS: void
  --
  -- NOTES:
  -- wrapper for uthash add macro
+ -- Stores all the information from the settings.conf file in information that can be used for forwarding data.
+ -- The two pointers serverIp and forwarderIp are used for creating of the filter rules that are applied to libpcap
  -- IP and Port should be normalized to network byte order
  */
 void ruleAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp)
@@ -132,7 +134,9 @@ void ruleDeleteAll()
  -- RETURNS: void
  --
  -- NOTES:
- -- testing function
+ -- Builds the string that is passed to libpcap for reading packets from client computer.
+ -- This is used to create a filter that will only accept packets that are destined to be filter by the
+ -- forwarder as set by the setting.conf
  */
 char* rulePrint()
 {
@@ -151,6 +155,26 @@ char* rulePrint()
     return str;
 }
 
+/*
+ -- FUNCTION: internRulePrint
+ --
+ -- DATE: March 16, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: void rulePrint()
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- Builds the string that is passed to libpcap for reading packets from server computer.
+ -- This is used to create a filter that will only accept packets that are destined to be forwarderd
+ -- as determined from the settings.conf file
+ */
 char* internRulePrint() {
     PRULE s;
     char * str = malloc(MAXBUFSIZE);

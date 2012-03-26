@@ -52,12 +52,30 @@ void systemFatal(const char* message)
  -- RETURNS: 0 on failure or a string useable by pcap to filter by ports eg "port 22 or port 23"
  --
  -- NOTES:
- -- wrapper for to string method from ruleHash
+ -- wrapper for rulePrint() function in ruleHash
  */
 char* rlExternToStr() {
     return rulePrint();
 }
 
+/*
+ -- FUNCTION: rlExternToStr();
+ --
+ -- DATE: March 17, 2011
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Warren Voelkl
+ --
+ -- PROGRAMMER: Warren Voelkl
+ --
+ -- INTERFACE: char* rlInternToStr()
+ --
+ -- RETURNS: 0 on failure or a string useable by pcap to filter by ports eg "port 22 or port 23"
+ --
+ -- NOTES:
+ -- wrapper for the interRulePrint() function in ruleHash
+ */
 char* rlInternToStr() {
     return internRulePrint();
 }
@@ -73,13 +91,14 @@ char* rlInternToStr() {
  --
  -- PROGRAMMER: Warren Voelkl
  --
- -- INTERFACE: int rlAdd(unsigned int clientDestPort, unsigned int serverDestPort, unsigned int serverDestIp)
+ -- INTERFACE: int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp)
  --
  -- RETURNS: 0 on failure 1 on success
  --
  -- NOTES:
  -- adds an entry to ruleHash useable for parsing client packets and giving the appropriate
- -- service port and service ip
+ -- service port and service ip.  In addition it stores strings of the server and forwarder information
+ -- these strings are used in creating the filter strings.
  */
 int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp) {
     if (ruleFind(clientDestPort) != 0) {
@@ -128,7 +147,7 @@ int rlFind(unsigned short clientDestPort, unsigned short *serverDestPort, unsign
  --
  -- PROGRAMMER: Warren Voelkl
  --
- -- INTERFACE: int srvFind(unsigned int serverPort, unsigned int *clientIp, unsigned int *clientPort)
+ -- INTERFACE: unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort, unsigned short *clientSrcPort)
  --
  -- RETURNS: 0 on failure 1 on success
  --

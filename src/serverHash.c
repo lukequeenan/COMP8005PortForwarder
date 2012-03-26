@@ -14,12 +14,13 @@ PSERVER hashServer = NULL;
  --
  -- PROGRAMMER: Warren Voelkl
  --
- -- INTERFACE: void serverAdd(unsigned int serverPort, unsigned int clientIp, unsigned int clientPort)
+ -- INTERFACE: void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort, unsigned short clientSrcPort)
  --
  -- RETURNS: void
  --
  -- NOTES:
  -- wrapper for uthash add macro
+ -- Stores information for a packet coming from the server to be sent to the appropriate client
  -- IP and Port should be normalized to network byte order
  */
 void serverAdd(unsigned short serverPort, unsigned int clientIp, unsigned short clientPort, unsigned short clientSrcPort)
