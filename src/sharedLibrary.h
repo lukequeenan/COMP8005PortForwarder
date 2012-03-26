@@ -1,6 +1,8 @@
 #ifndef SHARED_LIBRARY_H
 #define SHARED_LIBRARY_H
 
+#include <libnet.h>
+
 /* Defines */
 
 /* Typedefs */
@@ -8,20 +10,21 @@
 typedef struct
 {
     char externFilter;
-    char nic[8];
+    char incomingNic[8];
+    char outgoingNic[8];
     char ip[16];
-    int rawSocket;
+    libnet_t *myPacket;
 } info;
 
 /* Function Prototypes */
 void systemFatal(const char* message);
-unsigned short addRuleToMaps(unsigned int clientIp, unsigned short clientPort);
+unsigned short addRuleToMaps(unsigned int clientIp, unsigned short clientPort, unsigned short clientSrcPort);
 void deleteRuleFromMap(unsigned int clientIp, unsigned short clientPort, unsigned short serverPort);
 int cliFind(unsigned int clientIp, unsigned short clientPort, unsigned short *srvPort);
-unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort);
+unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort, unsigned short *clientSrcPort);
 int rlFind(unsigned short clientDestPort, unsigned short *serverDestPort, unsigned int *serverDestIp);
-int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp);
-char* rlToStr();
-
+int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp);
+char* rlExternToStr();
+char* rlInternToStr();
 
 #endif

@@ -37,7 +37,7 @@ void systemFatal(const char* message)
 }
 
 /*
- -- FUNCTION: rlToStr
+ -- FUNCTION: rlExternToStr();
  --
  -- DATE: March 17, 2011
  --
@@ -47,15 +47,19 @@ void systemFatal(const char* message)
  --
  -- PROGRAMMER: Warren Voelkl
  --
- -- INTERFACE: char* rlToStr()
+ -- INTERFACE: char* rlExternToStr()
  --
  -- RETURNS: 0 on failure or a string useable by pcap to filter by ports eg "port 22 or port 23"
  --
  -- NOTES:
  -- wrapper for to string method from ruleHash
  */
-char* rlToStr() {
+char* rlExternToStr() {
     return rulePrint();
+}
+
+char* rlInternToStr() {
+    return internRulePrint();
 }
 
 /*
@@ -77,11 +81,11 @@ char* rlToStr() {
  -- adds an entry to ruleHash useable for parsing client packets and giving the appropriate
  -- service port and service ip
  */
-int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp) {
+int rlAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp) {
     if (ruleFind(clientDestPort) != 0) {
         return 0;
     }
-    ruleAdd(clientDestPort, serverDestPort, serverDestIp);
+    ruleAdd(clientDestPort, serverDestPort, serverDestIp, serverIp, forwarderIp);
     return 1;
 }
 
@@ -131,11 +135,12 @@ int rlFind(unsigned short clientDestPort, unsigned short *serverDestPort, unsign
  -- NOTES:
  -- This function retrieves the client ip and client port data from the hashmap
  */
-unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort) {
+unsigned short srvFind(unsigned short serverPort, unsigned int *clientIp, unsigned short *clientPort, unsigned short *clientSrcPort) {
     PSERVER srv = serverFind(serverPort);
     if (srv == 0) {
         return 0;
     }
+    *clientSrcPort = srv->clientSrcPort;
     *clientIp = srv->clientIp;
     *clientPort = srv->clientPort;
     return 1;
@@ -188,10 +193,10 @@ int cliFind(unsigned int clientIp, unsigned short clientPort, unsigned short *sr
  -- So, remember a straight copy from the ip and tcp headers from the new client connection
  -- and inet_addr on the configuration server ip.
  */
-unsigned short addRuleToMaps(unsigned int clientIp, unsigned short clientPort) {
+unsigned short addRuleToMaps(unsigned int clientIp, unsigned short clientPort, unsigned short clientSrcPort) {
     unsigned short serverPort = randomSourcePort();
     clientAdd(clientIp, clientPort, serverPort);
-    serverAdd(serverPort, clientIp, clientPort);
+    serverAdd(serverPort, clientIp, clientPort, clientSrcPort);
     return serverPort;
 }
 

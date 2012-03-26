@@ -1,35 +1,69 @@
+/*-----------------------------------------------------------------------------
+ --	SOURCE FILE:    forward.c - A port forwarder using libpcap and libnet
+ --
+ --	PROGRAM:		Port Forwarder
+ --
+ --	FUNCTIONS:		
+ --                 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+ --
+ --	DATE:			March 13, 2012
+ --
+ --	REVISIONS:		(Date and Description)
+ --
+ --	DESIGNERS:      Luke Queenan
+ --
+ --	PROGRAMMERS:	Luke Queenan
+ --
+ --	NOTES:
+ -- This file contains the function that gets called when a packet matching one
+ -- of our rules is detected. It deals with the actual breakdown and forwarding
+ -- of packets between the two machines.
+ ----------------------------------------------------------------------------*/
 #include "forward.h"
 
 /* Local prototypes */
-static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *myPacket);
-unsigned short csum(unsigned short *buf, int nwords);
 //static void tcpPacket();
 //static void udpPacket();
 
+
+/*
+ -- FUNCTION: forward
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- This is the function that deals with the actual forwarding of packets. It
+ -- is called by the libpcap loop when a packet matching the filter is detected.
+ -- This function breaks the packet down and creates it using the libnet library
+ -- calls. The packet is then forwarded to the relevent machine.
+ */
 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    /*const struct sniff_ethernet *ethernet = NULL;*/
     const struct sniff_ip *ip = NULL;
     const struct sniff_tcp *tcp = NULL;
-    
-    struct sniff_ip *myIp = NULL;
-    struct sniff_tcp *myTcp = NULL;
-    
-    struct sockaddr_in sin;
-    
-    u_char *myPacket = NULL;
     
     info *myInfo = (info*)args;
     
     int ipHeaderSize = 0;
     int tcpHeaderSize = 0;
     int payloadSize = 0;
-    int sentData = 0;
     
-    unsigned int ipAddress = 0;
+    libnet_ptag_t ptag;
     
-    /* Ethernet header */
-    /*ethernet = (struct sniff_ethernet*)packet;*/
+    u_short sport = 0;
+    u_short dport = 0;
+    struct in_addr src_ip;
+    struct in_addr dst_ip;
     
     /* Get the IP header and offset value */
     ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
@@ -50,122 +84,98 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             return;
         }
         
-        /* Apparently the filter means nothing! */
-        inet_pton(AF_INET, myInfo->ip, &ipAddress);
-        if ((myInfo->externFilter == '1') && (ipAddress == ip->ip_src.s_addr))
-        {
-            return;
-        }
-        
         /* If we are the external filter, check to see if the SYN bit is set */
         if ((myInfo->externFilter == '1') && ((tcp->th_flags & TH_SYN) == TH_SYN))
         {
             /* Add the data to the map */
-            addRuleToMaps(ip->ip_src.s_addr, tcp->th_sport);
+            addRuleToMaps(ip->ip_src.s_addr, tcp->th_sport, tcp->th_dport);
         }
         
         /* Get the size of the payload */
         payloadSize = ntohs(ip->ip_len) - (ipHeaderSize + tcpHeaderSize);
         
-        /* Copy the packet over so we can edit it */
-        myPacket = malloc(ipHeaderSize + tcpHeaderSize + payloadSize);
-        memcpy(myPacket, packet + SIZE_ETHERNET, ipHeaderSize + tcpHeaderSize + payloadSize);
-        
-        /* Break the packet down */
-        myIp = (struct sniff_ip*)myPacket;
-        myTcp = (struct sniff_tcp*)(myPacket + ipHeaderSize);
-        
-        
-        
-        
-        //getHeadersTcp(myIp, myTcp, myPacket);
-        
-        /* Set information that changes if we are filtering internal or external
-           data */
+        /* Get the source and destination information from the map */
         if (myInfo->externFilter == '1')
         {
             /* We are sending packets to the internal machine */
             
             /* Get the forwarding machine's return port */
-            if (cliFind(ip->ip_src.s_addr, tcp->th_sport, &myTcp->th_sport) == 0)
+            if (cliFind(ip->ip_src.s_addr, tcp->th_sport, &sport) == 0)
             {
-                free(myPacket);
-                return;
-            }
-            /* Get the internal machine's listening port and IP for this port */
-            rlFind(tcp->th_dport, &myTcp->th_dport, &myIp->ip_dst.s_addr);
-            myIp->ip_src.s_addr = ip->ip_dst.s_addr;
-        }
-        else
-        {
-            /* Find the client to forward the packet to */
-            if (srvFind(tcp->th_dport, &myIp->ip_dst.s_addr, &myTcp->th_dport) == 0)
-            {
-                free(myPacket);
                 return;
             }
             
-            /* We are sending packets out to the world */
-            myIp->ip_src.s_addr = ip->ip_dst.s_addr;
+            /* Get the internal machine's listening port and IP for this port */
+            rlFind(tcp->th_dport, &dport, &dst_ip.s_addr);
+            src_ip.s_addr = ip->ip_dst.s_addr;
         }
-        
-        /* Set information that remains the same for both filters */
-        sin.sin_family = AF_INET;
-        sin.sin_port = myTcp->th_dport;
-        sin.sin_addr.s_addr = myIp->ip_dst.s_addr;
-        
-        /* Set the IP checksum to 0 */
-        myIp->ip_sum = 0;
-        
-        /* Create and assign the the checksum */
-        myTcp->th_sum = csum((unsigned short *) myPacket, ipHeaderSize +
-                             tcpHeaderSize + payloadSize);
-        
-        /* Send the packet on its way to the internal machine */
-        sentData = sendto(myInfo->rawSocket, myPacket, ipHeaderSize +
-                          tcpHeaderSize + payloadSize, 0, 
-                          (struct sockaddr *)&sin, sizeof(sin));
-
-        if (sentData == -1)
+        else
         {
-            systemFatal("Unable to send packet");
+            /* We are sending packets out to the world */
+            
+            /* Find the client to forward the packet to */
+            if (srvFind(tcp->th_dport, &dst_ip.s_addr, &dport, &sport) == 0)
+            {
+                return;
+            }
+            
+            /* Set the IP address */
+            src_ip.s_addr = ip->ip_dst.s_addr;
         }
         
-        /* Clean up */
-        free(myPacket);
+        /* Make the new TCP header */
+        ptag = libnet_build_tcp(
+            htons(sport),                               /* source port */
+            htons(dport),                               /* destination port */
+            ntohl(tcp->th_seq),                         /* sequence number */
+            ntohl(tcp->th_ack),                         /* acknowledgement num */
+            tcp->th_flags,                              /* control flags */
+            tcp->th_win,                                /* window size */
+            0,                                          /* checksum */
+            tcp->th_urp,                                /* urgent pointer */
+            tcpHeaderSize + payloadSize,                /* TCP packet size */
+            (u_char *)tcp + tcpHeaderSize,              /* payload */
+            payloadSize,                                /* payload size */
+            myInfo->myPacket,                           /* libnet handle */
+            0);                                         /* libnet id */
         
+        /* Error check */
+        if (ptag == -1)
+        {
+            libnet_clear_packet(myInfo->myPacket);
+            return;
+        }
+        
+        /* Make the IP header */
+        ptag = libnet_build_ipv4(
+            ipHeaderSize + tcpHeaderSize + payloadSize, /* length */
+            ip->ip_tos,                                 /* TOS */
+            ip->ip_id,                                  /* IP ID */
+            0,                                          /* IP Frag */
+            ip->ip_ttl,                                 /* TTL */
+            ip->ip_p,                                   /* protocol */
+            0,                                          /* checksum */
+            src_ip.s_addr,                              /* source IP */
+            dst_ip.s_addr,                              /* destination IP */
+            NULL,                                       /* payload */
+            0,                                          /* payload size */
+            myInfo->myPacket,                           /* libnet handle */
+            0);                                         /* libnet id */                                 
+        
+        /* Error check */
+        if (ptag == -1)
+        {
+            libnet_clear_packet(myInfo->myPacket);
+            return;
+        }
+        
+        /* Send the packet out */
+        libnet_write(myInfo->myPacket);
+        
+        /* Clear the libnet system */
+        libnet_clear_packet(myInfo->myPacket);
         return;
     }
-    else if (ip->ip_p == IPPROTO_UDP)
-    {
-        return;
-    }
-    else
-    {
-        return;
-    }
-}
-
-static void getHeadersTcp(struct sniff_ip *ip, struct sniff_tcp *tcp, u_char *myPacket)
-{
-    int ipHeaderSize = 0;
-    
-    ip = (struct sniff_ip*)(myPacket);
-    ipHeaderSize = IP_HL(ip) * 4;
-    
-    tcp = (struct sniff_tcp*)(myPacket + ipHeaderSize);
-}
-
-unsigned short csum(unsigned short *buf, int nwords)
-{
-    unsigned long sum;
-    for(sum=0; nwords>0; nwords--)
-    {
-        sum += *buf++;
-    }
-    sum = (sum >> 16) + (sum &0xffff);
-    sum += (sum >> 16);
-    return (unsigned short)(~sum);
 }
 
 /*

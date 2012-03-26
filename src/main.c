@@ -1,14 +1,38 @@
+/*-----------------------------------------------------------------------------
+ --	SOURCE FILE:    main.c - A port forwarder using libpcap and libnet
+ --
+ --	PROGRAM:		Port Forwarder
+ --
+ --	FUNCTIONS:		
+ --                 static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo);
+ --                 int main(int argc, char **argv);
+ --
+ --	DATE:			March 13, 2012
+ --
+ --	REVISIONS:		(Date and Description)
+ --
+ --	DESIGNERS:      Luke Queenan
+ --
+ --	PROGRAMMERS:	Luke Queenan
+ --
+ --	NOTES:
+ -- The entry point for a port forwarder using libpcap and libnet. This file
+ -- contains the functionality for reading and parsing a configuration file and
+ -- creating two threads where the packet forwarding is done. One thread
+ -- monitors the external side of the connection, while the other monitors the
+ -- internal side. This allows for better scalability on machines with multiple
+ -- cores and processors.
+ ----------------------------------------------------------------------------*/
 #include <arpa/inet.h>
-//#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <unistd.h>
 #include <limits.h>
 
 #include "sharedLibrary.h"
 #include "eventLoop.h"
 
+#define IPSTRLENGTH      16
 #define SETTINGS_BUFFER 1024
 
 /* Local Prototypes */
@@ -25,13 +49,16 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
  --
  -- PROGRAMMER: Luke Queenan
  --
- -- INTERFACE: int main(argc, char **argv)
+ -- INTERFACE: int main(argc, char **argv);
  --
  -- RETURNS: 0 on success
  --
  -- NOTES:
- -- This is the entry point for the port forwarder. It will parse the user input
- -- and start the required functionality.
+ -- This is the entry point for the port forwarder. It allows the user to
+ -- specify a configuration file from the command line if the default file is
+ -- not present. After calling a function to parse the file, the function
+ -- creates two system scope threads and waits for them to finish. The two
+ -- threads run the event loop code.
  */
 int main(int argc, char **argv)
 {
@@ -97,6 +124,27 @@ int main(int argc, char **argv)
     return 0;
 } 
 
+/*
+ -- FUNCTION: parseConfiguration
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo);
+ --
+ -- RETURNS: number of valid rules read
+ --
+ -- NOTES:
+ -- This function takes a file path and two structs where the information will
+ -- be held. The function reads the NIC cards and then the rules. The
+ -- information is then stored in the structs. The number of valid rules read is
+ -- returned.
+ */
 static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo)
 {
     int validSettings = 0;
@@ -106,9 +154,10 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
 
     unsigned int externPort = 0;
     unsigned int internPort = 0;
-    char externIp[16];
-    char internIp[16];
-    
+    char externIp[IPSTRLENGTH];
+    char internIp[IPSTRLENGTH];
+    char *forwarderIp;
+    char *serverIp;
     unsigned int ip = 0;
     
     /* Open the configuration file */
@@ -128,8 +177,11 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         /* Card names should be the first line of data, so get them */
         if (gotCardNames == 0)
         {
-            if (sscanf(line, "%[^,],%[^\n]", externInfo->nic, internInfo->nic) == 2)
+            if (sscanf(line, "%[^,],%[^\n]", externInfo->incomingNic, internInfo->incomingNic) == 2)
             {
+
+                memcpy(externInfo->outgoingNic, internInfo->incomingNic, 8);
+                memcpy(internInfo->outgoingNic, externInfo->incomingNic, 8);
                 gotCardNames = 1;
             }
             continue;
@@ -137,14 +189,19 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
         /* Get the data and ensure that it's valid */
         if (sscanf(line, "%d, %[^,], %d, %[^\n]", &externPort, externIp, &internPort, internIp) == 4)
         {
+            forwarderIp = malloc(IPSTRLENGTH);
+            serverIp = malloc(IPSTRLENGTH);
             validSettings++;
+
             /* Convert ip addresses to network form */
-            memcpy(externInfo->ip, externIp, 16);
-            memcpy(internInfo->ip, internIp, 16);
+            memcpy(externInfo->ip, externIp, IPSTRLENGTH);
+            memcpy(internInfo->ip, internIp, IPSTRLENGTH);
+            memcpy(forwarderIp, externIp, IPSTRLENGTH);
+            memcpy(serverIp, internIp, IPSTRLENGTH);
             inet_pton(AF_INET, internIp, &ip);
 
             /* Add the data to the map */
-            rlAdd(htons(externPort), htons(internPort), ip);
+            rlAdd(htons(externPort), htons(internPort), ip, serverIp, forwarderIp);
         }
     }
     fclose(file);

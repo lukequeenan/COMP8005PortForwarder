@@ -9,7 +9,7 @@ SRC=/src
 PROJECT_NAME=portForwarder.out
 
 project: forward.o eventLoop.o clientHash.o serverHash.o ruleHash.o sharedLibrary.o
-	$(CC) $(CFLAGS) $(TFLAGS) $(PFLAGS) forward.o eventLoop.o clientHash.o serverHash.o ruleHash.o sharedLibrary.o main.c -o $(PROJECT_NAME)
+	$(CC) $(CFLAGS) $(TFLAGS) $(PFLAGS) -lnet forward.o eventLoop.o clientHash.o serverHash.o ruleHash.o sharedLibrary.o main.c -o $(PROJECT_NAME)
 
 clean:
 	rm -f *.o *.bak *.out ex

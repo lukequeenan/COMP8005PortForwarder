@@ -8,6 +8,7 @@
 //#include <netinet/ip.h>
 //#include <netinet/tcp.h>
 //#include <netinet/udp.h>
+#include <libnet.h>
 #include <pcap.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +16,7 @@
 #include "sharedLibrary.h"
 
 #define SIZE_ETHERNET 14
-#define ETHER_ADDR_LEN 6
+//#define ETHER_ADDR_LEN 6
 
 /* Ethernet header */
 struct sniff_ethernet {

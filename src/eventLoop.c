@@ -1,39 +1,86 @@
+/*-----------------------------------------------------------------------------
+ --	SOURCE FILE:    eventLoop.c - A port forwarder using libpcap and libnet
+ --
+ --	PROGRAM:		Port Forwarder
+ --
+ --	FUNCTIONS:		
+ --                 static void createFilter(char *filter, char *ip, char externFilter);
+ --                 void *pcapLoop(void *data);
+ --
+ --	DATE:			March 13, 2012
+ --
+ --	REVISIONS:		(Date and Description)
+ --
+ --	DESIGNERS:      Luke Queenan
+ --
+ --	PROGRAMMERS:	Luke Queenan
+ --
+ --	NOTES:
+ -- This file contains the functionality for creating a pcap loop, which
+ -- includes creating a filter and a libnet packet for actual forwarding. There
+ -- are two instances of this function running during program execution, each of
+ -- them in their own thread.
+ ----------------------------------------------------------------------------*/
+
 #include "eventLoop.h"
 
 /* Local prototypes */
-static int createRawSocketTcp();
-static void createFilter(char *filter, char *nic, char *ip, char externFilter);
+static void createFilter(char *filter, char externFilter);
 
+/*
+ -- FUNCTION: pcapLoop
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: void *pcapLoop(void *data);
+ --
+ -- RETURNS: void*
+ --
+ -- NOTES:
+ -- The function called by each thread. Sets up the filter and the pcap
+ -- monitoring function.
+ */
 void *pcapLoop(void *data)
 {
     info *myInfo = (info*)data;
     pcap_t *handle;
     char errorBuffer[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
-    char *filter = NULL;
+    char *filter = malloc(sizeof(char) * FILTER_BUFFER);
     bpf_u_int32 mask;
     bpf_u_int32 net;
-    
-    /* Create the raw socket for sending data through */
-    myInfo->rawSocket = createRawSocketTcp();
-    
+
+    /* Create the libnet context */
+    myInfo->myPacket = libnet_init(LIBNET_RAW4, myInfo->outgoingNic, errorBuffer);
+    if (myInfo->myPacket == NULL)
+    {
+        systemFatal("Unable to set up libnet context");
+    }
+
     /* Create the filter */
-    createFilter(filter, myInfo->nic, myInfo->ip, myInfo->externFilter);
+    createFilter(filter, myInfo->externFilter);
+    
     /* Get the properties of the device that we are listening on */
-    if (pcap_lookupnet(myInfo->nic, &net, &mask, errorBuffer) == -1)
+    if (pcap_lookupnet(myInfo->incomingNic, &net, &mask, errorBuffer) == -1)
     {
         systemFatal("Unable to get device settings on pcap_lookupnet");
     }
-    
+
     /* Open the session in promiscuous mode */
-    handle = pcap_open_live(myInfo->nic, SNAP_LEN, 0, 0, errorBuffer);
+    handle = pcap_open_live(myInfo->incomingNic, SNAP_LEN, 0, 0, errorBuffer);
     if (handle == NULL)
     {
         systemFatal("Unable to open live capture");
     }
-    
+
     /* Parse the filter to the capture */
-    if (pcap_compile(handle, &fp, filter, 0, PCAP_NETMASK_UNKNOWN) == -1)
+    if (pcap_compile(handle, &fp, filter, 0, net) == -1)
     {
         systemFatal("Unable to compile filter");
     }
@@ -49,49 +96,50 @@ void *pcapLoop(void *data)
     {
         systemFatal("Error in pcap_loop");
     }
-    
+
     /* Clean up and exit */
     free(filter);
     pcap_freecode(&fp);
     pcap_close(handle);
+    libnet_destroy(myInfo->myPacket);
     pthread_exit(NULL);
 }
 
-static int createRawSocketTcp()
+/*
+ -- FUNCTION: createFilter
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: static void createFilter(char *filter, char externFilter);
+ --
+ -- RETURNS: void*
+ --
+ -- NOTES:
+ -- This function creates the filter string used by the libpcap monitoring
+ -- function.
+ */
+static void createFilter(char *filter, char externFilter)
 {
-    int rawSocket = 0;
-    int one = 1;
-    const int *val = &one;
-    
-    /* Create the raw socket for sending data through */
-    rawSocket = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
-
-    if (rawSocket == -1)
-    {
-        systemFatal("Unable to create raw socket");
-    }
-    
-    if (setsockopt(rawSocket, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) == -1)
-    {
-        systemFatal("Unable to set raw socket options");
-    }
-    
-    return rawSocket;
-}
-
-/* Need to grab the port filter from hashMap and attach the NIC to it */
-static void createFilter(char *filter, char *nic, char *ip, char externFilter)
-{
-    char *ports = malloc(sizeof(char) * FILTER_BUFFER);
-    filter = malloc(sizeof(char) * FILTER_BUFFER);
+    char *ports = NULL;
+    char *internRules = NULL;
     if (externFilter == '1')
     {
-        ports = rlToStr();
-        snprintf(filter, FILTER_BUFFER, "-i %s dst host %s and %s", nic, ip, ports);
+        ports = malloc(sizeof(char) * FILTER_BUFFER);
+        ports = rlExternToStr();
+        snprintf(filter, FILTER_BUFFER, "%s", ports);
+        free(ports);
     }
     else
     {
-        snprintf(filter, FILTER_BUFFER, "-i %s src host %s", nic, ip);
+        internRules = rlInternToStr();
+        snprintf(filter, FILTER_BUFFER, "%s", internRules);
+        free(internRules);
     }
-    free(ports);
+    
 }

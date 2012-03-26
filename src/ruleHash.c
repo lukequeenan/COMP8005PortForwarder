@@ -23,12 +23,14 @@ PRULE hashRule = NULL;
  -- wrapper for uthash add macro
  -- IP and Port should be normalized to network byte order
  */
-void ruleAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp)
+void ruleAdd(unsigned short clientDestPort, unsigned short serverDestPort, unsigned int serverDestIp, char* serverIp, char* forwarderIp)
 {
     PRULE pRule = malloc(sizeof(RULE));
     pRule->clientDestPort = clientDestPort;
     pRule->serverDestPort = serverDestPort;
     pRule->serverDestIp = serverDestIp;
+    pRule->serverIp = serverIp;
+    pRule->forwarderIp = forwarderIp;
     HASH_ADD_SHORT(hashRule, clientDestPort, pRule);
 
 }
@@ -135,16 +137,32 @@ void ruleDeleteAll()
 char* rulePrint()
 {
     PRULE s;
-    char *str = malloc(1024);
+    char * str = malloc(MAXBUFSIZE);
     s = hashRule;
+
     if (hashRule == 0) {
         free(str);
         return 0;
     }
-
-    snprintf(str, 16, "dst port %d", ntohs(s->clientDestPort));
+    snprintf(str, 51, "(dst host %s and dst port %d)", s->forwarderIp, ntohs(s->clientDestPort));
     for (s = s->hh.next; s != NULL; s = s->hh.next) {
-        snprintf(&str[strlen(str)], 20, " or port %d", ntohs(s->clientDestPort));
+        snprintf(&str[strlen(str)], 55, " or (dst host %s and dst port %d)", s->forwarderIp, ntohs(s->clientDestPort));
+    }
+    return str;
+}
+
+char* internRulePrint() {
+    PRULE s;
+    char * str = malloc(MAXBUFSIZE);
+    s = hashRule;
+
+    if (hashRule == 0) {
+        free(str);
+        return 0;
+    }
+    snprintf(str, 25, "src host %s", s->serverIp);
+    for (s = s->hh.next; s != NULL; s = s->hh.next) {
+        snprintf(&str[strlen(str)], 29, " or src host %s", s->serverIp);
     }
     return str;
 }
@@ -194,3 +212,5 @@ void ruleSortById()
 {
     HASH_SORT(hashRule, ruleSort);
 }
+
+
