@@ -4,8 +4,7 @@
  --	PROGRAM:		Port Forwarder
  --
  --	FUNCTIONS:		
- --                 static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo);
- --                 int main(int argc, char **argv);
+ --                 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
  --
  --	DATE:			March 13, 2012
  --
@@ -16,12 +15,9 @@
  --	PROGRAMMERS:	Luke Queenan
  --
  --	NOTES:
- -- The entry point for a port forwarder using libpcap and libnet. This file
- -- contains the functionality for reading and parsing a configuration file and
- -- creating two threads where the packet forwarding is done. One thread
- -- monitors the external side of the connection, while the other monitors the
- -- internal side. This allows for better scalability on machines with multiple
- -- cores and processors.
+ -- This file contains the function that gets called when a packet matching one
+ -- of our rules is detected. It deals with the actual breakdown and forwarding
+ -- of packets between the two machines.
  ----------------------------------------------------------------------------*/
 #include "forward.h"
 
@@ -29,6 +25,28 @@
 //static void tcpPacket();
 //static void udpPacket();
 
+
+/*
+ -- FUNCTION: forward
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+ --
+ -- RETURNS: void
+ --
+ -- NOTES:
+ -- This is the function that deals with the actual forwarding of packets. It
+ -- is called by the libpcap loop when a packet matching the filter is detected.
+ -- This function breaks the packet down and creates it using the libnet library
+ -- calls. The packet is then forwarded to the relevent machine.
+ */
 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
     const struct sniff_ip *ip = NULL;

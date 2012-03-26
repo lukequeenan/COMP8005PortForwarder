@@ -1,8 +1,51 @@
+/*-----------------------------------------------------------------------------
+ --	SOURCE FILE:    eventLoop.c - A port forwarder using libpcap and libnet
+ --
+ --	PROGRAM:		Port Forwarder
+ --
+ --	FUNCTIONS:		
+ --                 static void createFilter(char *filter, char *ip, char externFilter);
+ --                 void *pcapLoop(void *data);
+ --
+ --	DATE:			March 13, 2012
+ --
+ --	REVISIONS:		(Date and Description)
+ --
+ --	DESIGNERS:      Luke Queenan
+ --
+ --	PROGRAMMERS:	Luke Queenan
+ --
+ --	NOTES:
+ -- This file contains the functionality for creating a pcap loop, which
+ -- includes creating a filter and a libnet packet for actual forwarding. There
+ -- are two instances of this function running during program execution, each of
+ -- them in their own thread.
+ ----------------------------------------------------------------------------*/
+
 #include "eventLoop.h"
 
 /* Local prototypes */
-static void createFilter(char *filter, char *ip, char externFilter);
+static void createFilter(char *filter, char externFilter);
 
+/*
+ -- FUNCTION: pcapLoop
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: void *pcapLoop(void *data);
+ --
+ -- RETURNS: void*
+ --
+ -- NOTES:
+ -- The function called by each thread. Sets up the filter and the pcap
+ -- monitoring function.
+ */
 void *pcapLoop(void *data)
 {
     info *myInfo = (info*)data;
@@ -21,7 +64,7 @@ void *pcapLoop(void *data)
     }
 
     /* Create the filter */
-    createFilter(filter, myInfo->ip, myInfo->externFilter);
+    createFilter(filter, myInfo->externFilter);
     
     /* Get the properties of the device that we are listening on */
     if (pcap_lookupnet(myInfo->incomingNic, &net, &mask, errorBuffer) == -1)
@@ -41,7 +84,7 @@ void *pcapLoop(void *data)
     {
         systemFatal("Unable to compile filter");
     }
-    printf("%s\n", filter);
+    
     /* Set the filter on the listening device */
     if (pcap_setfilter(handle, &fp) == -1)
     {
@@ -62,8 +105,26 @@ void *pcapLoop(void *data)
     pthread_exit(NULL);
 }
 
-/* Need to grab the port filter from hashMap and attach the NIC to it */
-static void createFilter(char *filter, char *ip, char externFilter)
+/*
+ -- FUNCTION: createFilter
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: static void createFilter(char *filter, char externFilter);
+ --
+ -- RETURNS: void*
+ --
+ -- NOTES:
+ -- This function creates the filter string used by the libpcap monitoring
+ -- function.
+ */
+static void createFilter(char *filter, char externFilter)
 {
     char *ports = NULL;
     char *internRules = NULL;

@@ -49,7 +49,7 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
  --
  -- PROGRAMMER: Luke Queenan
  --
- -- INTERFACE: int main(argc, char **argv)
+ -- INTERFACE: int main(argc, char **argv);
  --
  -- RETURNS: 0 on success
  --
