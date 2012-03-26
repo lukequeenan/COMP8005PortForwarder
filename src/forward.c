@@ -1,3 +1,28 @@
+/*-----------------------------------------------------------------------------
+ --	SOURCE FILE:    forward.c - A port forwarder using libpcap and libnet
+ --
+ --	PROGRAM:		Port Forwarder
+ --
+ --	FUNCTIONS:		
+ --                 static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo);
+ --                 int main(int argc, char **argv);
+ --
+ --	DATE:			March 13, 2012
+ --
+ --	REVISIONS:		(Date and Description)
+ --
+ --	DESIGNERS:      Luke Queenan
+ --
+ --	PROGRAMMERS:	Luke Queenan
+ --
+ --	NOTES:
+ -- The entry point for a port forwarder using libpcap and libnet. This file
+ -- contains the functionality for reading and parsing a configuration file and
+ -- creating two threads where the packet forwarding is done. One thread
+ -- monitors the external side of the connection, while the other monitors the
+ -- internal side. This allows for better scalability on machines with multiple
+ -- cores and processors.
+ ----------------------------------------------------------------------------*/
 #include "forward.h"
 
 /* Local prototypes */
@@ -61,32 +86,33 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             {
                 return;
             }
+            
             /* Get the internal machine's listening port and IP for this port */
             rlFind(tcp->th_dport, &dport, &dst_ip.s_addr);
             src_ip.s_addr = ip->ip_dst.s_addr;
         }
         else
         {
+            /* We are sending packets out to the world */
+            
             /* Find the client to forward the packet to */
             if (srvFind(tcp->th_dport, &dst_ip.s_addr, &dport, &sport) == 0)
             {
                 return;
             }
-            /* Need to implement another rule find in the hash map to find this*/
-            //sport = htons(22); /* Testing!!!! NEED TO FIX ^*/
             
-            /* We are sending packets out to the world */
+            /* Set the IP address */
             src_ip.s_addr = ip->ip_dst.s_addr;
         }
         
-        /* Make the new TCP packet */
+        /* Make the new TCP header */
         ptag = libnet_build_tcp(
-            htons(sport),                                      /* source port */
-            htons(dport),                                      /* destination port */
-            ntohl(tcp->th_seq),                                /* sequence number */
-            ntohl(tcp->th_ack),                                /* acknowledgement num */
-            tcp->th_flags,                                     /* control flags */
-            tcp->th_win,                                      /* window size */
+            htons(sport),                               /* source port */
+            htons(dport),                               /* destination port */
+            ntohl(tcp->th_seq),                         /* sequence number */
+            ntohl(tcp->th_ack),                         /* acknowledgement num */
+            tcp->th_flags,                              /* control flags */
+            tcp->th_win,                                /* window size */
             0,                                          /* checksum */
             tcp->th_urp,                                /* urgent pointer */
             tcpHeaderSize + payloadSize,                /* TCP packet size */
@@ -94,34 +120,38 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             payloadSize,                                /* payload size */
             myInfo->myPacket,                           /* libnet handle */
             0);                                         /* libnet id */
-    
+        
+        /* Error check */
         if (ptag == -1)
         {
             libnet_clear_packet(myInfo->myPacket);
             return;
         }
         
+        /* Make the IP header */
         ptag = libnet_build_ipv4(
             ipHeaderSize + tcpHeaderSize + payloadSize, /* length */
-            ip->ip_tos,                                          /* TOS */
-            ip->ip_id,                                        /* IP ID */
+            ip->ip_tos,                                 /* TOS */
+            ip->ip_id,                                  /* IP ID */
             0,                                          /* IP Frag */
-            ip->ip_ttl,                                         /* TTL */
-            ip->ip_p,                                /* protocol */
+            ip->ip_ttl,                                 /* TTL */
+            ip->ip_p,                                   /* protocol */
             0,                                          /* checksum */
-            src_ip.s_addr,                                     /* source IP */
-            dst_ip.s_addr,                                     /* destination IP */
+            src_ip.s_addr,                              /* source IP */
+            dst_ip.s_addr,                              /* destination IP */
             NULL,                                       /* payload */
             0,                                          /* payload size */
-            myInfo->myPacket,                                          /* libnet handle */
+            myInfo->myPacket,                           /* libnet handle */
             0);                                         /* libnet id */                                 
         
+        /* Error check */
         if (ptag == -1)
         {
             libnet_clear_packet(myInfo->myPacket);
             return;
         }
         
+        /* Send the packet out */
         libnet_write(myInfo->myPacket);
         
         /* Clear the libnet system */

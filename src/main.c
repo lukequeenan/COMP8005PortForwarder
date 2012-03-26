@@ -1,9 +1,32 @@
+/*-----------------------------------------------------------------------------
+ --	SOURCE FILE:    main.c - A port forwarder using libpcap and libnet
+ --
+ --	PROGRAM:		Port Forwarder
+ --
+ --	FUNCTIONS:		
+ --                 static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo);
+ --                 int main(int argc, char **argv);
+ --
+ --	DATE:			March 13, 2012
+ --
+ --	REVISIONS:		(Date and Description)
+ --
+ --	DESIGNERS:      Luke Queenan
+ --
+ --	PROGRAMMERS:	Luke Queenan
+ --
+ --	NOTES:
+ -- The entry point for a port forwarder using libpcap and libnet. This file
+ -- contains the functionality for reading and parsing a configuration file and
+ -- creating two threads where the packet forwarding is done. One thread
+ -- monitors the external side of the connection, while the other monitors the
+ -- internal side. This allows for better scalability on machines with multiple
+ -- cores and processors.
+ ----------------------------------------------------------------------------*/
 #include <arpa/inet.h>
-//#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <unistd.h>
 #include <limits.h>
 
 #include "sharedLibrary.h"
@@ -31,8 +54,11 @@ static int parseConfiguration(const char filePath[], info *externInfo, info *int
  -- RETURNS: 0 on success
  --
  -- NOTES:
- -- This is the entry point for the port forwarder. It will parse the user input
- -- and start the required functionality.
+ -- This is the entry point for the port forwarder. It allows the user to
+ -- specify a configuration file from the command line if the default file is
+ -- not present. After calling a function to parse the file, the function
+ -- creates two system scope threads and waits for them to finish. The two
+ -- threads run the event loop code.
  */
 int main(int argc, char **argv)
 {
@@ -98,6 +124,27 @@ int main(int argc, char **argv)
     return 0;
 } 
 
+/*
+ -- FUNCTION: parseConfiguration
+ --
+ -- DATE: March 13, 2012
+ --
+ -- REVISIONS: (Date and Description)
+ --
+ -- DESIGNER: Luke Queenan
+ --
+ -- PROGRAMMER: Luke Queenan
+ --
+ -- INTERFACE: static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo);
+ --
+ -- RETURNS: number of valid rules read
+ --
+ -- NOTES:
+ -- This function takes a file path and two structs where the information will
+ -- be held. The function reads the NIC cards and then the rules. The
+ -- information is then stored in the structs. The number of valid rules read is
+ -- returned.
+ */
 static int parseConfiguration(const char filePath[], info *externInfo, info *internInfo)
 {
     int validSettings = 0;
