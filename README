@@ -1,4 +1,4 @@
-Port Forwarder using libpcap and libnet.
+Port Forwarder for UDP and TCP using libpcap and libnet.
 
 Authors:
 	Luke Queenan
