@@ -51,6 +51,7 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
 {
     const struct sniff_ip *ip = NULL;
     const struct sniff_tcp *tcp = NULL;
+    const struct sniff_udp *udp = NULL;
     
     info *myInfo = (info*)args;
     
@@ -146,21 +147,61 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             return;
         }
         
-        /* Make the IP header */
-        ptag = libnet_build_ipv4(
-            ipHeaderSize + tcpHeaderSize + payloadSize, /* length */
-            ip->ip_tos,                                 /* TOS */
-            ip->ip_id,                                  /* IP ID */
-            0,                                          /* IP Frag */
-            ip->ip_ttl,                                 /* TTL */
-            ip->ip_p,                                   /* protocol */
-            0,                                          /* checksum */
-            src_ip.s_addr,                              /* source IP */
-            dst_ip.s_addr,                              /* destination IP */
-            NULL,                                       /* payload */
-            0,                                          /* payload size */
-            myInfo->myPacket,                           /* libnet handle */
-            0);                                         /* libnet id */                                 
+    }
+    else if (ip->ip_p == IPPROTO_UDP)
+    {
+        /* Grab the UDP packet */
+        udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + ipHeaderSize);
+        
+        
+        /* If we are the external filter, make sure that we have a rule added */
+        if (myInfo->externFilter == '1')
+        {
+            addRuleToMaps(ip->ip_src.s_addr, udp->uh_sport, udp->uh_dport);
+        }
+        
+        /* Get the payload size */
+        payloadSize = ntohs(udp->uh_len) - SIZE_UDP_HEADER;
+        
+        /* Get the source and destination information from the map */
+        if (myInfo->externFilter == '1')
+        {
+            /* We are sending packets to the internal machine */
+            
+            /* Get the forwarding machine's return port */
+            if (cliFind(ip->ip_src.s_addr, udp->uh_sport, &sport) == 0)
+            {
+                return;
+            }
+            
+            /* Get the internal machine's listening port and IP for this port */
+            rlFind(udp->uh_dport, &dport, &dst_ip.s_addr);
+            src_ip.s_addr = ip->ip_dst.s_addr;
+        }
+        else
+        {
+            /* We are sending packets out to the world */
+            
+            /* Find the client to forward the packet to */
+            if (srvFind(udp->uh_dport, &dst_ip.s_addr, &dport, &sport) == 0)
+            {
+                return;
+            }
+            
+            /* Set the IP address */
+            src_ip.s_addr = ip->ip_dst.s_addr;
+        }
+        
+        /* Make the new UDP header */
+        ptag = libnet_build_udp(
+            htons(sport),                           /* source port */
+            htons(dport),                           /* destination port */
+            ntohl(udp->uh_len),                     /* packet size */
+            0,                                      /* checksum */
+            (u_char *)udp + SIZE_UDP_HEADER,         /* payload */
+            payloadSize,                            /* payload size */
+            myInfo->myPacket,                       /* libnet handle */
+            0);                                     /* libnet id */
         
         /* Error check */
         if (ptag == -1)
@@ -168,14 +209,42 @@ void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             libnet_clear_packet(myInfo->myPacket);
             return;
         }
-        
-        /* Send the packet out */
-        libnet_write(myInfo->myPacket);
-        
-        /* Clear the libnet system */
+    }
+    else
+    {
+        /* Protocol that we do not handle, exit */
+        return;
+    }
+    
+    /* Make the IP header */
+    ptag = libnet_build_ipv4(
+        ipHeaderSize + tcpHeaderSize + payloadSize, /* length */
+        ip->ip_tos,                                 /* TOS */
+        ip->ip_id,                                  /* IP ID */
+        0,                                          /* IP Frag */
+        ip->ip_ttl,                                 /* TTL */
+        ip->ip_p,                                   /* protocol */
+        0,                                          /* checksum */
+        src_ip.s_addr,                              /* source IP */
+        dst_ip.s_addr,                              /* destination IP */
+        NULL,                                       /* payload */
+        0,                                          /* payload size */
+        myInfo->myPacket,                           /* libnet handle */
+        0);                                         /* libnet id */                                 
+    
+    /* Error check */
+    if (ptag == -1)
+    {
         libnet_clear_packet(myInfo->myPacket);
         return;
     }
+    
+    /* Send the packet out */
+    libnet_write(myInfo->myPacket);
+    
+    /* Clear the libnet system */
+    libnet_clear_packet(myInfo->myPacket);
+    return;
 }
 
 /*

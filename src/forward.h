@@ -16,6 +16,7 @@
 #include "sharedLibrary.h"
 
 #define SIZE_ETHERNET 14
+#define SIZE_UDP_HEADER 8
 //#define ETHER_ADDR_LEN 6
 
 /* Ethernet header */
@@ -67,6 +68,14 @@ struct sniff_tcp {
     u_short th_win;                 /* window */
     u_short th_sum;                 /* checksum */
     u_short th_urp;                 /* urgent pointer */
+};
+
+/* UDP header */
+struct sniff_udp {
+    u_short uh_sport;               /* source port */
+    u_short uh_dport;               /* destination port */
+    u_short uh_len;                 /* packet length */
+    u_short uh_sum;                 /* checksum */
 };
 
 void forward(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
